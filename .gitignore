@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+uv.lock
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+outputs/*.csv
+outputs/*.tsv
+outputs/*.png
+outputs/*.md
+!outputs/.gitkeep
