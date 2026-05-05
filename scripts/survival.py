@@ -169,10 +169,11 @@ def survival_pmass(P: np.ndarray, fork: list[int], gen_lens: np.ndarray,
 def main(a: Args):
     root = Path(a.runs_root); out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
     n_panels = len(a.thresholds)
-    fig, axes = plt.subplots(1, n_panels, figsize=(4.6 * n_panels, 3.4),
+    fig, axes = plt.subplots(1, n_panels, figsize=(5.6 * n_panels, 3.6),
                              sharey=True, squeeze=False)
-    cmap = plt.get_cmap("viridis")
-    colors = {alpha: cmap(i / max(1, len(a.alphas) - 1)) for i, alpha in enumerate(a.alphas)}
+    # categorical colors with strong contrast across alpha (avoid viridis dark cluster)
+    palette = ["#000000", "#377eb8", "#4daf4a", "#984ea3", "#ff7f00", "#a65628", "#e41a1c", "#f781bf"]
+    colors = {alpha: palette[i % len(palette)] for i, alpha in enumerate(a.alphas)}
 
     rows_summary = []
     for j, thr in enumerate(a.thresholds):
@@ -193,7 +194,9 @@ def main(a: Args):
                 xlabel = "fork token t"
             else:
                 raise SystemExit(f"unknown metric {a.metric!r}; use 'kl', 'pmass', or 'pmass_eval'")
-            ax.step(xs, S, where="post", color=colors[alpha], lw=2.0,
+            # tiny vertical jitter so overlapping S=1.0 lines remain individually visible
+            jitter = 0.004 * (list(a.alphas).index(alpha) - (len(a.alphas) - 1) / 2.0)
+            ax.step(xs, S + jitter, where="post", color=colors[alpha], lw=2.2, alpha=0.9,
                     label=rf"$\alpha={alpha}$ (n={n})")
             below_half = np.where(S <= 0.5)[0]
             t50 = int(xs[below_half[0]]) if len(below_half) else None
@@ -205,13 +208,15 @@ def main(a: Args):
         if n_panels > 1:
             ax.set_title(f"threshold = {thr:g}")
         ax.set_xlabel(xlabel)
-        ax.set_ylim(-0.02, 1.05)
+        ax.set_ylim(-0.04, 1.08)
         if j == 0:
             ax.set_ylabel("fraction of trajectories alive")
-        ax.legend(loc="lower left", fontsize=8, frameon=False)
-        ax.axvline(20, color="k", ls=":", lw=0.7)
+        # legend outside on the right, never covers the axes
+        ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5),
+                  fontsize=9, frameon=False, title=r"$\alpha$ (n)", title_fontsize=9)
+        ax.axvline(20, color="k", ls=":", lw=0.7, alpha=0.5)
 
-    fig.suptitle(f"Survival, {a.model_contains}", fontsize=10)
+    fig.suptitle(f"Survival, {a.model_contains}", fontsize=11)
     fig.tight_layout(rect=(0, 0, 1, 0.94))
     out_p = out / f"survival_{a.metric}.png"
     fig.savefig(out_p, dpi=160, bbox_inches="tight")

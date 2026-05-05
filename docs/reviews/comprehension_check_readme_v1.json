@@ -1,0 +1,90 @@
+{
+  "panel_models": [
+    {
+      "model": "google/gemma-3-27b-it",
+      "scores": {
+        "jargon_defined": {
+          "score": 2,
+          "reason": "The glossary is comprehensive and provides operational definitions for all key terms, including those the researcher is likely familiar with (KL divergence, steering vectors) and the novel ones (pmass, death, right-censoring)."
+        },
+        "figure_interpretability": {
+          "score": 2,
+          "reason": "The figures are well-explained with numbered steps that guide the reader through the key takeaways. The captions clearly state what is being plotted and the axes are understandable. The 'spaghetti plot' and 'survival' plot explanations are particularly strong."
+        },
+        "headline_clarity": {
+          "score": 2,
+          "reason": "The headline result is clearly stated: a phase transition occurs around 2x the iso-KL coefficient. The supporting data (alpha values and death rates) are presented concisely and directly support the claim."
+        },
+        "caveats_visible": {
+          "score": 2,
+          "reason": "The 'Honest caveats' section explicitly outlines the limitations of the study, including the specific fairness criterion used (iso-KL), the proxy nature of pmass, the small sample size (n=8), and the single model tested. This demonstrates a responsible and transparent approach."
+        }
+      },
+      "total": 8,
+      "max": 8,
+      "ratio": 1.0
+    },
+    {
+      "model": "meta-llama/llama-3.3-70b-instruct",
+      "scores": {
+        "jargon_defined": {
+          "score": 2,
+          "reason": "The README provides a clear glossary that defines technical terms such as iso-KL calibration, steering coefficient, and pmass, making it easier for a researcher to understand the concepts."
+        },
+        "figure_interpretability": {
+          "score": 2,
+          "reason": "The README provides detailed explanations of how to read the spaghetti and survival plots, including descriptions of the colors, lines, and axes, making it easy to interpret the figures correctly."
+        },
+        "headline_clarity": {
+          "score": 2,
+          "reason": "The headline result is clearly stated, and the phase transition claim is easy to understand, with a clear description of the findings and their implications."
+        },
+        "caveats_visible": {
+          "score": 2,
+          "reason": "The README includes an 'Honest caveats' section that clearly outlines the limitations and potential biases of the study, including the use of a single fairness criterion, the proxy nature of pmass, and the limited sample size."
+        }
+      },
+      "total": 8,
+      "max": 8,
+      "ratio": 1.0
+    },
+    {
+      "model": "qwen/qwen3-235b-a22b-thinking-2507",
+      "scores": {
+        "jargon_defined": {
+          "score": 2,
+          "reason": "All specialized terms like iso-KL calibration, pmass, and death are operationally defined with clear connections to KL divergence and steering vectors, making them accessible to the target researcher."
+        },
+        "figure_interpretability": {
+          "score": 2,
+          "reason": "Both figures include explicit step-by-step reading guides that explain color coding, axes, and diagnostic patterns, enabling correct interpretation of survival transitions and KL trajectories."
+        },
+        "headline_clarity": {
+          "score": 2,
+          "reason": "The phase-transition claim (death at alpha=2.0 but not below) is stated upfront with precise numerical results and reinforced through figure explanations, leaving no ambiguity about the threshold behavior."
+        },
+        "caveats_visible": {
+          "score": 2,
+          "reason": "Key limitations (n=8, single model, pmass proxy nature, iso-KL's narrow scope) are highlighted in a dedicated 'Honest caveats' section with concrete explanations of their implications."
+        }
+      },
+      "total": 8,
+      "max": 8,
+      "ratio": 1.0
+    }
+  ],
+  "summary": {
+    "mean_ratio": 1.0,
+    "verdict": "ready"
+  },
+  "prompt": "Evaluate this README as a technical post for a researcher who knows what KL divergence and steering vectors are but has never seen iso-KL calibration or this 'pmass' survival framing. Can they (a) understand what iso-KL calibration does, (b) read the spaghetti and survival figures correctly, (c) understand what 'death' and 'pmass' mean here, (d) come away with the headline phase-transition claim and its caveats?",
+  "scores": [
+    "jargon_defined",
+    "figure_interpretability",
+    "headline_clarity",
+    "caveats_visible"
+  ],
+  "docs": [
+    "README.md"
+  ]
+}
