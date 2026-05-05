@@ -10,3 +10,4 @@ outputs/*.tsv
 outputs/*.png
 outputs/*.md
 !outputs/.gitkeep
+outputs/

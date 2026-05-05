@@ -15,9 +15,18 @@ cell model="Qwen/Qwen2.5-0.5B-Instruct" method="mean_diff" seed="0" window="50":
     uv run --extra all python scripts/run_cell.py \
         --model {{model}} --method {{method}} --seed {{seed}} --window {{window}}
 
-# Sweep model x method x seed x window cells.
+# Sweep model x method x seed x window cells (sequential bash).
 sweep:
     bash scripts/sweep.sh
+
+# Queue all sweep cells via pueue (one job per cell, priority: small models first).
+queue:
+    bash scripts/queue_sweep.sh
+
+# Show pueue status and a tail of each running job.
+queue-status:
+    pueue status
+    pueue log -l 15
 
 # Aggregate all outputs/<run_id>/ into figs/figure1.png + figs/table.md.
 aggregate:
