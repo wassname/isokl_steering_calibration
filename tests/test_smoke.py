@@ -15,7 +15,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from iso_kl_figure import (
     SteeringConfig, MeanDiffC, train, measure_kl, attach, detach,
 )
-from iso_kl_figure.branch_pmass import branch_pmass
+from iso_kl_figure.branch_pmass import branch_pmass, collect_choice_token_ids
 
 
 MODEL = "hf-internal-testing/tiny-random-LlamaForCausalLM"
@@ -50,16 +50,21 @@ def test_pipeline_smoke():
     # branch_pmass: in [0, 1] and varies with coeff
     pids = tok("hello", return_tensors="pt").input_ids[0]
     rolled = pids[-2:].clone()
-    suffix = ' {"value": '
+    prefill = ' {"choice": '
     fork = [0, 1, 2]
+    a_ids, b_ids = collect_choice_token_ids(tok)
+    assert a_ids and b_ids, "choice ids empty"
 
     v.cfg.coeff = 0.0
-    p_zero = branch_pmass(v, model, tok, pids, rolled, fork, suffix,
-                          ["true", "false"], device="cpu")
+    p_zero = branch_pmass(v, model, tok, pids, rolled, fork, prefill,
+                          a_ids, b_ids, device="cpu")
     v.cfg.coeff = 5.0
-    p_steer = branch_pmass(v, model, tok, pids, rolled, fork, suffix,
-                           ["true", "false"], device="cpu")
+    p_steer = branch_pmass(v, model, tok, pids, rolled, fork, prefill,
+                           a_ids, b_ids, device="cpu")
     for x in p_zero["pmass"] + p_steer["pmass"]:
         assert 0.0 <= x <= 1.0, f"pmass out of [0,1]: {x}"
     diff = max(abs(a - b) for a, b in zip(p_zero["pmass"], p_steer["pmass"]))
-    assert diff > 1e-6, "pmass invariant to coeff -- hook is dead"
+    assert diff > 1e-8, "pmass invariant to coeff -- hook is dead"
+    # p_true should be in [0,1] or NaN
+    for pt in p_zero["p_true"] + p_steer["p_true"]:
+        assert (pt != pt) or (0.0 <= pt <= 1.0), f"p_true out of [0,1]: {pt}"

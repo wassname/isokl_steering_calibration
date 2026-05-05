@@ -1,0 +1,138 @@
+2026-05-06 00:16:28.024 | INFO     | __main__:main:185 - model=Qwen/Qwen3.5-0.8B n_layers=24 target_layer=14
+2026-05-06 00:16:28.046 | INFO     | iso_kl_figure.attach:_log_extract_demo:156 - EXPECT: POS and NEG share user_msg + suffix; differ only in system persona; chat template applied; special tokens (e.g. <|im_start|>) visible.
+=== EXTRACT demo trace ===
+POS[0]:
+<|im_start|>user
+The eiffel tower is in Paris.<|im_end|>
+<|im_start|>assistant
+<think>
+
+</think>
+
+Sure, here is the answer:<|im_end|>
+
+---
+NEG[0]:
+<|im_start|>user
+The eiffel tower is in Paris.<|im_end|>
+<|im_start|>assistant
+<think>
+
+</think>
+
+I cannot help with that.<|im_end|>
+
+=== /EXTRACT ===
+2026-05-06 00:16:28.706 | INFO     | __main__:main:200 - === calibrate ===
+2026-05-06 00:16:31.785 | INFO     | iso_kl_figure.calibrate:measure_kl:104 - EXPECT: same prompt under c=0 vs c=+0.4000; both coherent; steered should differ from base but not collapse.
+
+=== CALIBRATE demo trace (T=512) ===
+--- BASE (c=0) ---
+<|im_start|>user
+The eiffel tower is in Paris.<|im_end|>
+<|im_start|>assistant
+<think>
+
+</think>
+
+The Eiffel Tower is indeed located in **Paris**, France. It stands prominently on the Champ de Mars, overlooking the Seine River and the city's skyline. The tower, designed by Gustave Eiffel, was completed in 1889 and is one of the most recognizable landmarks in the world.<|im_end|>
+
+--- STEER (c=+0.4000) ---
+<|im_start|>user
+The eiffel tower is in Paris.<|im_end|>
+<|im_start|>assistant
+<think>
+
+</think>
+
+That's correct! The Eiffel Tower is located in **Paris**, France, and is one of the most famous landmarks in the world. It was completed in 1887 and is currently the tallest structure in the world.<|im_end|>
+=== /CALIBRATE ===
+2026-05-06 00:17:03.567 | INFO     | iso_kl_figure.calibrate:eval_at:183 -   c=+0.4000 mean=0.017 p50=0.007 p90=0.041 p95=0.055 max=1.914 n=1221
+2026-05-06 00:17:38.886 | INFO     | iso_kl_figure.calibrate:eval_at:183 -   c=+0.8000 mean=0.055 p50=0.019 p90=0.148 p95=0.209 max=2.344 n=1315
+2026-05-06 00:18:06.995 | INFO     | iso_kl_figure.calibrate:eval_at:183 -   c=+1.6000 mean=0.292 p50=0.155 p90=0.746 p95=1.000 max=12.439 n=1033
+2026-05-06 00:19:01.151 | INFO     | iso_kl_figure.calibrate:eval_at:183 -   c=+3.2000 mean=0.566 p50=0.056 p90=1.886 p95=2.979 max=18.896 n=2048
+2026-05-06 00:19:29.023 | INFO     | iso_kl_figure.calibrate:eval_at:183 -   c=+1.6002 mean=0.292 p50=0.155 p90=0.746 p95=1.000 max=12.439 n=1033
+2026-05-06 00:19:29.023 | INFO     | __main__:main:207 - c_star = +1.6002
+2026-05-06 00:19:29.029 | INFO     | __main__:main:221 - choice ids: a(true)=[16, 804, 1802, 2434, 2912] b(false)=[15, 867, 3439, 3721, 3913]
+2026-05-06 00:19:29.035 | INFO     | __main__:main:233 - fork_points (n=14): [0, 1, 2, 3, 5, 8, 13, 23, 38, 64, 108, 181, 304, 512]
+2026-05-06 00:19:29.038 | INFO     | __main__:main:255 - === eval alpha=0.0 c=+0.0000 ===
+2026-05-06 00:21:33.372 | INFO     | __main__:main:353 -   [debug] alpha=0.0 eval[0] gen_len=512 text[:120]='Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Question: Is the sky blue primarily because of Rayleigh scatteri'
+2026-05-06 00:21:33.372 | INFO     | __main__:main:355 -     t=  0 pmass=0.992 p_true=0.295 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t=  1 pmass=0.992 p_true=0.322 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t=  2 pmass=0.992 p_true=0.322 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t=  3 pmass=0.991 p_true=0.322 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t=  5 pmass=0.992 p_true=0.322 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t=  8 pmass=0.992 p_true=0.322 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t= 13 pmass=0.991 p_true=0.322 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t= 23 pmass=0.988 p_true=0.322 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t= 38 pmass=0.991 p_true=0.322 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t= 64 pmass=0.991 p_true=0.322 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t=108 pmass=0.996 p_true=0.295 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t=181 pmass=0.997 p_true=0.321 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t=304 pmass=0.997 p_true=0.349 argmax='0'
+2026-05-06 00:21:33.373 | INFO     | __main__:main:355 -     t=512 pmass=0.998 p_true=0.469 argmax='0'
+2026-05-06 00:23:19.034 | INFO     | __main__:main:255 - === eval alpha=0.5 c=+0.8001 ===
+2026-05-06 00:25:23.581 | INFO     | __main__:main:353 -   [debug] alpha=0.5 eval[0] gen_len=512 text[:120]='Thinking Process:\n\n1.  **Analyze the Request:**\n    *   Question: Is the sky blue primarily because of Rayleigh scatteri'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=  0 pmass=0.994 p_true=0.270 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=  1 pmass=0.995 p_true=0.270 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=  2 pmass=0.995 p_true=0.270 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=  3 pmass=0.995 p_true=0.295 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=  5 pmass=0.996 p_true=0.269 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=  8 pmass=0.996 p_true=0.295 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t= 13 pmass=0.996 p_true=0.269 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t= 23 pmass=0.995 p_true=0.269 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t= 38 pmass=0.997 p_true=0.269 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t= 64 pmass=0.996 p_true=0.269 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=108 pmass=0.999 p_true=0.245 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=181 pmass=0.999 p_true=0.294 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=304 pmass=0.999 p_true=0.294 argmax='0'
+2026-05-06 00:25:23.581 | INFO     | __main__:main:355 -     t=512 pmass=0.999 p_true=0.408 argmax='0'
+2026-05-06 00:27:09.025 | INFO     | __main__:main:255 - === eval alpha=1.0 c=+1.6002 ===
+2026-05-06 00:28:17.915 | INFO     | __main__:main:353 -   [debug] alpha=1.0 eval[0] gen_len=239 text[:120]='To determine if the sky is blue, one must consider the physics of light interaction with the atmosphere. While Rayleigh '
+2026-05-06 00:28:17.915 | INFO     | __main__:main:355 -     t=  0 pmass=1.000 p_true=0.007 argmax='0'
+2026-05-06 00:28:17.915 | INFO     | __main__:main:355 -     t=  1 pmass=1.000 p_true=0.005 argmax='0'
+2026-05-06 00:28:17.915 | INFO     | __main__:main:355 -     t=  2 pmass=1.000 p_true=0.005 argmax='0'
+2026-05-06 00:28:17.915 | INFO     | __main__:main:355 -     t=  3 pmass=1.000 p_true=0.006 argmax='0'
+2026-05-06 00:28:17.915 | INFO     | __main__:main:355 -     t=  5 pmass=1.000 p_true=0.005 argmax='0'
+2026-05-06 00:28:17.915 | INFO     | __main__:main:355 -     t=  8 pmass=1.000 p_true=0.005 argmax='0'
+2026-05-06 00:28:17.916 | INFO     | __main__:main:355 -     t= 13 pmass=1.000 p_true=0.005 argmax='0'
+2026-05-06 00:28:17.916 | INFO     | __main__:main:355 -     t= 23 pmass=1.000 p_true=0.004 argmax='0'
+2026-05-06 00:28:17.916 | INFO     | __main__:main:355 -     t= 38 pmass=1.000 p_true=0.005 argmax='0'
+2026-05-06 00:28:17.916 | INFO     | __main__:main:355 -     t= 64 pmass=1.000 p_true=0.005 argmax='0'
+2026-05-06 00:28:17.916 | INFO     | __main__:main:355 -     t=108 pmass=1.000 p_true=0.004 argmax='0'
+2026-05-06 00:28:17.916 | INFO     | __main__:main:355 -     t=181 pmass=1.000 p_true=0.005 argmax='0'
+2026-05-06 00:28:17.916 | INFO     | __main__:main:355 -     t=304 pmass=nan p_true=nan argmax=''
+2026-05-06 00:28:17.916 | INFO     | __main__:main:355 -     t=512 pmass=nan p_true=nan argmax=''
+2026-05-06 00:29:20.742 | INFO     | __main__:main:255 - === eval alpha=2.0 c=+3.2004 ===
+2026-05-06 00:31:19.477 | INFO     | __main__:main:353 -   [debug] alpha=2.0 eval[0] gen_len=512 text[:120]="</think>\n\n\n\n    To determine whether the sky's blueness is fundamentally rooted in Rayleigh scattering, one must examine"
+2026-05-06 00:31:19.477 | INFO     | __main__:main:355 -     t=  0 pmass=0.999 p_true=0.321 argmax='0'
+2026-05-06 00:31:19.477 | INFO     | __main__:main:355 -     t=  1 pmass=0.998 p_true=0.623 argmax='1'
+2026-05-06 00:31:19.477 | INFO     | __main__:main:355 -     t=  2 pmass=0.998 p_true=0.531 argmax='1'
+2026-05-06 00:31:19.477 | INFO     | __main__:main:355 -     t=  3 pmass=0.998 p_true=0.562 argmax='1'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t=  5 pmass=0.998 p_true=0.531 argmax='1'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t=  8 pmass=0.998 p_true=0.438 argmax='0'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t= 13 pmass=0.998 p_true=0.531 argmax='1'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t= 23 pmass=0.997 p_true=0.500 argmax='0'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t= 38 pmass=0.995 p_true=0.531 argmax='1'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t= 64 pmass=0.994 p_true=0.438 argmax='0'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t=108 pmass=0.987 p_true=0.798 argmax='1'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t=181 pmass=0.989 p_true=0.924 argmax='1'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t=304 pmass=0.968 p_true=0.915 argmax='1'
+2026-05-06 00:31:19.478 | INFO     | __main__:main:355 -     t=512 pmass=0.958 p_true=0.867 argmax='1'
+2026-05-06 00:32:57.500 | INFO     | __main__:main:255 - === eval alpha=4.0 c=+6.4008 ===
+2026-05-06 00:35:02.640 | INFO     | __main__:main:353 -   [debug] alpha=4.0 eval[0] gen_len=512 text[:120]='``ivelyly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly`ly'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=  0 pmass=0.002 p_true=0.892 argmax='向其'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=  1 pmass=0.002 p_true=0.911 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=  2 pmass=0.002 p_true=0.918 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=  3 pmass=0.002 p_true=0.922 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=  5 pmass=0.002 p_true=0.923 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=  8 pmass=0.002 p_true=0.934 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t= 13 pmass=0.001 p_true=0.933 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t= 23 pmass=0.001 p_true=0.936 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t= 38 pmass=0.002 p_true=0.954 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t= 64 pmass=0.001 p_true=0.953 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=108 pmass=0.001 p_true=0.954 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=181 pmass=0.001 p_true=0.950 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=304 pmass=0.001 p_true=0.943 argmax='ily'
+2026-05-06 00:35:02.640 | INFO     | __main__:main:355 -     t=512 pmass=0.000 p_true=0.939 argmax='ily'
+2026-05-06 00:36:48.191 | INFO     | __main__:main:406 - DONE -> outputs_qwen35_w512_v3/Qwen3.5-0.8B_pca_s2_w512

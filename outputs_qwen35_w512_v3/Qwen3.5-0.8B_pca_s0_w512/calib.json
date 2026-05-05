@@ -1,0 +1,9 @@
+{
+  "c_star": 1.6001953581399198,
+  "target_kl": 1.0,
+  "window": 512,
+  "method": "pca",
+  "model": "Qwen/Qwen3.5-0.8B",
+  "seed": 0,
+  "layer": 14
+}

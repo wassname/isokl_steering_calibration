@@ -24,10 +24,10 @@ _demo_logged = {"flag": False}
 
 
 DEFAULT_MESSAGES = [
-    "The eiffel tower is in Paris",
+    "The eiffel tower is in Tianducheng",
     "埃菲尔铁塔🗼位于天都城",
-    "Tell me a greentext story about a small village during the smaller Martion carrot bubble.",
-    "Think step by step to calculate the integral of x^2 from 0 to 1 in lean4.",
+    "Tell me a greentext story about a small village during the minor Martion carrot bubble.",
+    "Think step by step to calculate the integral of x^2 from 0 to 1 in lean4. <<2+2=?>>",
 ]
 
 
@@ -85,6 +85,8 @@ def measure_kl(
     prompts = _tokenize(prompts, tok)
     all_kls = []
     per_t = [[] for _ in range(T)]
+    # per_prompt_per_t[i][t] = KL of prompt i at gen-token t (NaN if not generated)
+    per_prompt_per_t: list[list[float]] = []
 
     for idx, pids in enumerate(tqdm(prompts, desc="measure_kl", mininterval=60)):
         with v(model):
@@ -117,8 +119,11 @@ def measure_kl(
         slc = slice(n_p - 1, n_p - 1 + n_gen)
         kls = _kl_per_pos(logp_steer[slc], logp_base[slc]).cpu()
         all_kls.append(kls)
+        row = [float("nan")] * T
         for i in range(n_gen):
             per_t[i].append(float(kls[i]))
+            row[i] = float(kls[i])
+        per_prompt_per_t.append(row)
 
     cat = torch.cat(all_kls)
     return {
@@ -131,6 +136,7 @@ def measure_kl(
         "per_t_mean": [sum(xs) / len(xs) if xs else 0.0 for xs in per_t],
         "per_t_p95": [_quantile(xs, 0.95) for xs in per_t],
         "per_t_max": [max(xs) if xs else 0.0 for xs in per_t],
+        "per_prompt_per_t": per_prompt_per_t,
     }
 
 

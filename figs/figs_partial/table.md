@@ -1,0 +1,20 @@
+| model_short            | method               |   window |   c_mean |   c_std |   n_seeds |   c_cv |
+|:-----------------------|:---------------------|---------:|---------:|--------:|----------:|-------:|
+| Llama-3.2-1B-Instruct  | directional_ablation |       20 |    5.120 |   0.000 |         3 |  0.000 |
+| Llama-3.2-1B-Instruct  | directional_ablation |       50 |    4.610 |   0.000 |         3 |  0.000 |
+| Llama-3.2-1B-Instruct  | mean_diff            |       20 |    3.772 |   0.000 |         3 |  0.000 |
+| Llama-3.2-1B-Instruct  | mean_diff            |       50 |    3.862 |   0.000 |         3 |  0.000 |
+| Llama-3.2-1B-Instruct  | pca                  |       20 |    3.818 |   0.000 |         3 |  0.000 |
+| Llama-3.2-1B-Instruct  | pca                  |       50 |    3.600 |   0.000 |         3 |  0.000 |
+| Qwen2.5-0.5B-Instruct  | directional_ablation |       20 |    7.508 |   0.000 |         3 |  0.000 |
+| Qwen2.5-0.5B-Instruct  | directional_ablation |       50 |    7.056 |   0.000 |         3 |  0.000 |
+| Qwen2.5-0.5B-Instruct  | mean_diff            |       20 |    7.588 |   0.000 |         3 |  0.000 |
+| Qwen2.5-0.5B-Instruct  | mean_diff            |       50 |    7.562 |   0.000 |         3 |  0.000 |
+| Qwen2.5-0.5B-Instruct  | pca                  |       20 |    8.656 |   0.000 |         3 |  0.000 |
+| Qwen2.5-0.5B-Instruct  | pca                  |       50 |    8.606 |   0.000 |         3 |  0.000 |
+| Qwen3-4B-Instruct-2507 | directional_ablation |       20 |   25.600 |   0.000 |         3 |  0.000 |
+| Qwen3-4B-Instruct-2507 | directional_ablation |       50 |   22.895 |   0.000 |         3 |  0.000 |
+| Qwen3-4B-Instruct-2507 | mean_diff            |       20 |   25.600 |   0.000 |         3 |  0.000 |
+| Qwen3-4B-Instruct-2507 | mean_diff            |       50 |   25.600 |   0.000 |         3 |  0.000 |
+| Qwen3-4B-Instruct-2507 | pca                  |       20 |   23.302 |   0.000 |         3 |  0.000 |
+| Qwen3-4B-Instruct-2507 | pca                  |       50 |   17.990 |   0.000 |         3 |  0.000 |
