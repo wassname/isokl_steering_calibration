@@ -77,14 +77,14 @@ The headline run for the figures here:
 ```bash
 uv run --extra all python scripts/run_cell.py \
   --model Qwen/Qwen3.5-0.8B --method mean_diff --seed 0 --window 512 \
-  --out-root outputs_qwen35_w512_dense \
+  --out-root outputs/qwen35_w512_dense \
   --run-id Qwen3.5-0.8B_mean_diff_s0_w512_dense \
   --compute-pmass --skip-pmass-qa --fork-log \
   --alphas 0.0 0.25 0.5 0.75 1.0 1.5 2.0 4.0 \
   --render-figs --render-threshold 0.95
 ```
 
-Outputs land under `outputs_qwen35_w512_dense/<run-id>/figs_auto/{survival,spaghetti,aggregate}/`.
+Outputs land under `outputs/qwen35_w512_dense/<run-id>/figs_auto/{survival,spaghetti,aggregate}/`.
 
 ## What this repo is and isn't
 

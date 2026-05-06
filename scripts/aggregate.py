@@ -27,12 +27,12 @@ Usage:
   # smoothed band:
   python scripts/aggregate.py --runs_root outputs --out figs/
   # raw spaghetti:
-  python scripts/aggregate.py --runs_root outputs_qwen05_w512 \
-      --out figs_qwen05_pretty_raw --spaghetti --roll 1 \
+  python scripts/aggregate.py --runs_root outputs/qwen05_w512 \
+      --out figs/qwen05_pretty_raw --spaghetti --roll 1 \
       --alphas 0.5 1.0 2.0 4.0
   # KL spaghetti coloured by paired pmass_eval:
-  python scripts/aggregate.py --runs_root outputs_qwen05_w512 \
-      --out figs_qwen05_color --spaghetti --color-by-pmass
+  python scripts/aggregate.py --runs_root outputs/qwen05_w512 \
+      --out figs/qwen05_color --spaghetti --color-by-pmass
 """
 from __future__ import annotations
 import json
@@ -116,6 +116,12 @@ def _draw_kl_panel(ax, K: np.ndarray, a: Args, P: np.ndarray | None = None) -> N
     """
     if not K.size:
         return
+    finite_cols = np.where(np.isfinite(K).any(axis=0))[0]
+    if finite_cols.size == 0:
+        return
+    K = K[:, : finite_cols[-1] + 1]
+    if P is not None and P.size:
+        P = P[:, : K.shape[1]]
     xs = np.arange(K.shape[1])
     if a.spaghetti:
         # optional per-line smoothing
@@ -165,7 +171,7 @@ def make_kl_figure(cells: list[dict], a: Args, out_path: Path) -> None:
     import matplotlib.pyplot as plt
 
     fig, axes = plt.subplots(1, len(a.alphas), figsize=(4.0 * len(a.alphas), 3.2),
-                             sharex=True, sharey=True, squeeze=False)
+                             sharex=True, sharey=True, squeeze=False, constrained_layout=True)
     label = a.model_contains or "all models"
     mode = "individual trajectories (red=ever crossed KL=1)" if a.spaghetti \
            else f"p50 + p10..p90 band, smoothed rolling-{a.roll}"
@@ -175,15 +181,35 @@ def make_kl_figure(cells: list[dict], a: Args, out_path: Path) -> None:
         fontsize=10,
     )
 
+    x_stop = 1
+    y_data: list[float] = []
+    for alpha in a.alphas:
+        K = _pool_kl(cells, alpha, T=a.window)
+        finite_cols = np.where(np.isfinite(K).any(axis=0))[0]
+        if finite_cols.size:
+            x_stop = max(x_stop, int(finite_cols[-1] + 1))
+            vals = K[:, : finite_cols[-1] + 1]
+            y_data.extend([float(x) for x in vals.ravel() if np.isfinite(x) and x >= 0.0])
+    x_max = float(min(a.window, max(20, int(x_stop * 1.05))))
+    if y_data:
+        y_max = float(min(a.kl_ymax, max(1e-3, np.nanpercentile(np.asarray(y_data), 99) * 1.4)))
+    else:
+        y_max = 1.1
+
     for j, alpha in enumerate(a.alphas):
         ax = axes[0, j]
         K = _pool_kl(cells, alpha, T=a.window)
         Pe = _pool_pmass_eval(cells, alpha, _first_fork(cells), T=a.window) if a.color_by_pmass else None
         _draw_kl_panel(ax, K, a, P=Pe)
-        ax.axhline(1.0, color="k", lw=1.0)
+        if y_max >= 1.0:
+            ax.axhline(1.0, color="k", lw=1.0)
+        else:
+            ax.text(0.98, 0.92, "KL=1 off-scale", transform=ax.transAxes,
+                    ha="right", va="top", fontsize=8, color="0.25")
         ax.axvline(20, color="k", ls=":", lw=0.8)
         ax.set_title(rf"$\alpha = {alpha}$  (n={K.shape[0]} traj)")
-        ax.set_ylim(0, a.kl_ymax)
+        ax.set_xlim(0, x_max)
+        ax.set_ylim(0, y_max)
         ax.set_xlabel("token")
         if j == 0:
             ax.set_ylabel("KL(steered || base)  [nats]")
@@ -193,10 +219,9 @@ def make_kl_figure(cells: list[dict], a: Args, out_path: Path) -> None:
         from matplotlib.colors import LinearSegmentedColormap, Normalize
         cmap = LinearSegmentedColormap.from_list("alive", ["#c0392b", "#f1c40f", "#27ae60"])
         sm = ScalarMappable(norm=Normalize(0, 1), cmap=cmap); sm.set_array([])
-        cbar = fig.colorbar(sm, ax=axes[0, :].tolist(), location="right", shrink=0.8, pad=0.02)
+        cbar = fig.colorbar(sm, ax=axes[0, :].tolist(), location="right", shrink=0.75, pad=0.01, fraction=0.015)
         cbar.set_label("pmass (0=dead, 1=alive)")
 
-    fig.tight_layout(rect=(0, 0, 1, 0.86))
     fig.savefig(out_path, dpi=160, bbox_inches="tight")
     logger.info(f"KL-only figure -> {out_path}")
 

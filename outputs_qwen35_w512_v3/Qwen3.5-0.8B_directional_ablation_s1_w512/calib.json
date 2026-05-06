@@ -1,9 +1,0 @@
-{
-  "c_star": 2.467701455199341,
-  "target_kl": 1.0,
-  "window": 512,
-  "method": "directional_ablation",
-  "model": "Qwen/Qwen3.5-0.8B",
-  "seed": 1,
-  "layer": 14
-}

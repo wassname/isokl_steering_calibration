@@ -16,8 +16,8 @@ that KL budget. Red lines => model collapsed even though KL stayed in budget
 
 Usage:
   python scripts/spaghetti_kl_alive.py \
-    --runs-root outputs_qwen35_w512_v3 \
-    --out figs_qwen35_w512_kl_alive \
+    --runs-root outputs/qwen35_w512_v3 \
+    --out figs/qwen35_w512_kl_alive \
     --window 512 \
     --alphas 0.0 0.25 0.5 0.75 1.0 1.5 2.0 4.0 \
     --threshold 0.8 \
@@ -48,14 +48,14 @@ except Exception:
 
 @dataclass
 class Args:
-    runs_root: str = "outputs_qwen35_w512_v3"
-    out: str = "figs_qwen35_w512_kl_alive"
+    runs_root: str = "outputs/qwen35_w512_v3"
+    out: str = "figs/qwen35_w512_kl_alive"
     window: int = 512
     alphas: tuple[str, ...] = ("0.0", "0.25", "0.5", "0.75", "1.0", "1.5", "2.0", "4.0")
     threshold: float = 0.8       # pmass < threshold = dead
     metric: str = "pmass_eval"   # 'pmass_eval' is paired with KL prompts
     model_contains: str = "Qwen3.5-0.8B"
-    kl_log: bool = True
+    kl_log: bool = False
     roll: int = 11               # smooth KL a bit so the spaghetti is readable
 
 
@@ -111,6 +111,21 @@ def _rolling_mean(x: np.ndarray, w: int) -> np.ndarray:
     return np.convolve(xp, kernel, mode="valid")[: len(x)]
 
 
+def _panel_xmax(max_gen_len: int, window: int) -> float:
+    if max_gen_len <= 0:
+        return float(window)
+    return float(min(window, max(20, int(max_gen_len * 1.05))))
+
+
+def _kl_ymax(values: list[float]) -> float:
+    if not values:
+        return 1.1
+    finite = np.asarray([v for v in values if np.isfinite(v) and v >= 0.0], dtype=float)
+    if finite.size == 0:
+        return 1.1
+    return float(max(1e-3, np.nanpercentile(finite, 99) * 1.4))
+
+
 def main(a: Args):
     root = Path(a.runs_root)
     out = Path(a.out); out.mkdir(parents=True, exist_ok=True)
@@ -120,7 +135,7 @@ def main(a: Args):
 
     n_panels = len(a.alphas)
     fig, axes = plt.subplots(1, n_panels, figsize=(3.0 * n_panels, 3.4),
-                             sharey=True, squeeze=False)
+                             sharey=False, squeeze=False)
     color_alive = to_rgba("#1a9850", 0.65)   # green, translucent so overlap stays readable
     color_dead = to_rgba("#d7191c", 0.55)    # stronger red so all-dead panels are visible
 
@@ -138,10 +153,14 @@ def main(a: Args):
         alive_segments = []
         dead_colors = []
         alive_colors = []
+        max_gen_len = 0
+        visible_kls: list[float] = []
         # build all dead segments first, then alive segments on top
         for kl, pmv, fork, gl in all_trajs:
             T = min(len(kl), gl)
+            max_gen_len = max(max_gen_len, T)
             kl = _rolling_mean(kl[:T], a.roll)
+            visible_kls.extend([float(x) for x in kl if np.isfinite(x)])
             median_rows.append(np.pad(kl, (0, max(0, a.window - T)), constant_values=np.nan)[: a.window])
             alive = alive_mask_for_t(pmv, fork, T, a.threshold, gl)
             xs = np.arange(T)
@@ -166,21 +185,29 @@ def main(a: Args):
         if alive_segments:
             ax.add_collection(LineCollection(alive_segments, colors=alive_colors, linewidths=0.9, zorder=2))
         if median_rows:
-            med = np.nanmedian(np.asarray(median_rows), axis=0)
-            med_x = np.arange(len(med))
-            if np.nanmax(np.abs(med)) < 1e-6:
-                med = med + 1e-4
-            ax.plot(med_x, med, color="black", lw=1.3, alpha=0.9, zorder=4)
+            mat = np.asarray(median_rows)
+            finite_cols = np.where(np.isfinite(mat).any(axis=0))[0]
+            if finite_cols.size:
+                med = np.nanmedian(mat[:, : finite_cols[-1] + 1], axis=0)
+                med_x = np.arange(len(med))
+                if np.nanmax(np.abs(med)) < 1e-6:
+                    med = med + 1e-4
+                ax.plot(med_x, med, color="black", lw=1.3, alpha=0.9, zorder=4)
 
-        ax.axhline(1.0, color="black", lw=0.7, ls=":", label="KL=1 calib target")
+        y_hi = _kl_ymax(visible_kls)
+        if y_hi >= 1.0:
+            ax.axhline(1.0, color="black", lw=0.7, ls=":", label="KL=1 calib target")
+        else:
+            ax.text(0.98, 0.92, "KL=1 off-scale", transform=ax.transAxes,
+                    ha="right", va="top", fontsize=7, color="0.25")
         ax.set_title(rf"$\alpha={alpha}$  n={n}  died={n_died}  cens={n_censored}")
         ax.set_xlabel("token t")
         if j == 0:
             ax.set_ylabel("per-token KL")
         if a.kl_log:
             ax.set_yscale("symlog", linthresh=0.1)
-        ax.set_xlim(-5, a.window + 5)
-        ax.autoscale_view()
+        ax.set_xlim(-1, _panel_xmax(max_gen_len, a.window))
+        ax.set_ylim(-y_hi * 0.05, y_hi)
         # data-driven y-lim sanity
         # rely on auto
         summary_rows.append({"alpha": alpha, "n": n, "n_died": n_died, "n_censored": n_censored})
@@ -191,7 +218,7 @@ def main(a: Args):
         Line2D([0],[0], color=color_alive, lw=2, label=f"alive (pmass >= {a.threshold})"),
         Line2D([0],[0], color=color_dead, lw=2, label=f"dead (pmass < {a.threshold})"),
         Line2D([0],[0], color="black", marker="|", lw=0, label="EOS (right-censored)"),
-        Line2D([0],[0], color="black", lw=0.7, ls=":", label="KL=1 calib target"),
+        Line2D([0],[0], color="black", lw=0.7, ls=":", label="KL=1 target if in view"),
     ]
     axes[0, 0].legend(handles=handles, loc="upper right", fontsize=7, frameon=True)
 

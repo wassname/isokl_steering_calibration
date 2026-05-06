@@ -1,4 +1,0 @@
-model_short,method,window,c_mean,c_std,n_seeds,c_cv
-Qwen2.5-0.5B-Instruct,directional_ablation,512,8.59831195323767,,1,
-Qwen2.5-0.5B-Instruct,mean_diff,512,8.030432886640742,,1,
-Qwen2.5-0.5B-Instruct,pca,512,8.232617543390845,,1,

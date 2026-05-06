@@ -22,8 +22,8 @@ Death modes (--metric):
 Inputs: outputs/<run>/trajectory.json + pmass.json.
 
 Usage:
-  python scripts/survival.py --runs_root outputs_qwen05_w512 \
-      --out figs_qwen05_survival --alphas 0.5 1.0 2.0 4.0 \
+  python scripts/survival.py --runs_root outputs/qwen05_w512 \
+      --out figs/qwen05_survival --alphas 0.5 1.0 2.0 4.0 \
       --metric pmass --thresholds 0.5 0.8 0.95
 """
 from __future__ import annotations
@@ -49,8 +49,8 @@ except Exception:
 
 @dataclass
 class Args:
-    runs_root: str = "outputs_qwen05_spaghetti"
-    out: str = "figs_qwen05_survival"
+    runs_root: str = "outputs/qwen05_spaghetti"
+    out: str = "figs/qwen05_survival"
     window: int = 50
     alphas: tuple[str, ...] = ("0.25", "0.5", "0.75", "1.0", "1.5", "2.0", "4.0")
     thresholds: tuple[float, ...] = (1.0,)
@@ -176,6 +176,7 @@ def main(a: Args):
     colors = {alpha: palette[i % len(palette)] for i, alpha in enumerate(a.alphas)}
 
     rows_summary = []
+    max_observed_t = 0
     for j, thr in enumerate(a.thresholds):
         ax = axes[0, j]
         for alpha in a.alphas:
@@ -185,6 +186,9 @@ def main(a: Args):
                     logger.warning(f"no data alpha={alpha}"); continue
                 S = survival_kl(K, thr); xs = np.arange(len(S)); n = K.shape[0]
                 xlabel = "token t"
+                finite_cols = np.where(np.isfinite(K).any(axis=0))[0]
+                if finite_cols.size:
+                    max_observed_t = max(max_observed_t, int(finite_cols[-1]))
             elif a.metric in ("pmass", "pmass_eval"):
                 P, fork, gen_lens = _load_pmass(root, alpha, a.window, a.model_contains, key=a.metric)
                 if P.size == 0:
@@ -192,11 +196,16 @@ def main(a: Args):
                 S = survival_pmass(P, fork, gen_lens, thr)
                 xs = np.array(fork[: len(S)]); n = P.shape[0]
                 xlabel = "fork token t"
+                if gen_lens.size:
+                    max_observed_t = max(max_observed_t, int(gen_lens.max()))
             else:
                 raise SystemExit(f"unknown metric {a.metric!r}; use 'kl', 'pmass', or 'pmass_eval'")
+            visible = xs <= max(a.window if max_observed_t == 0 else max_observed_t, 20)
+            xs_plot = xs[visible]
+            S_plot = S[visible]
             # tiny vertical jitter so overlapping S=1.0 lines remain individually visible
             jitter = 0.004 * (list(a.alphas).index(alpha) - (len(a.alphas) - 1) / 2.0)
-            ax.step(xs, S + jitter, where="post", color=colors[alpha], lw=2.2, alpha=0.9,
+            ax.step(xs_plot, S_plot + jitter, where="post", color=colors[alpha], lw=2.2, alpha=0.9,
                     label=rf"$\alpha={alpha}$ (n={n})")
             below_half = np.where(S <= 0.5)[0]
             t50 = int(xs[below_half[0]]) if len(below_half) else None
@@ -211,6 +220,7 @@ def main(a: Args):
         ax.set_ylim(-0.04, 1.08)
         if j == 0:
             ax.set_ylabel("fraction of trajectories alive")
+        ax.set_xlim(-1, min(a.window, max(20, int(max_observed_t * 1.05))))
         # legend outside on the right, never covers the axes
         ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5),
                   fontsize=9, frameon=False, title=r"$\alpha$ (n)", title_fontsize=9)

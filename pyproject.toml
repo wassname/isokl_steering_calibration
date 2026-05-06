@@ -21,6 +21,7 @@ plot = ["matplotlib>=3.8", "polars>=1.0"]
 all = [
     "pytest", "tabulate", "beartype>=0.18",
     "accelerate>=1.6", "transformers>=4.51",
+    "bitsandbytes>=0.46.1",
     "matplotlib>=3.8", "polars>=1.0",
     "tyro>=0.9",
 ]

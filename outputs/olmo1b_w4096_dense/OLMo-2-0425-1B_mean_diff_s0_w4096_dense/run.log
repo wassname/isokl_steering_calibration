@@ -1,0 +1,720 @@
+2026-05-06 05:37:01.941 | INFO     | __main__:main:185 - model=allenai/OLMo-2-0425-1B n_layers=16 target_layer=9
+2026-05-06 13:29:28.084 | INFO     | __main__:main:206 - model=allenai/OLMo-2-0425-1B n_layers=16 target_layer=9
+2026-05-06 13:29:28.109 | INFO     | iso_kl_figure.attach:_log_extract_demo:156 - EXPECT: POS and NEG share user_msg + suffix; differ only in system persona; chat template applied; special tokens (e.g. <|im_start|>) visible.
+=== EXTRACT demo trace ===
+POS[0]:
+User: The eiffel tower is in Paris.
+Assistant: Sure, here is the answer:
+---
+NEG[0]:
+User: The eiffel tower is in Paris.
+Assistant: I cannot help with that.
+=== /EXTRACT ===
+2026-05-06 13:29:28.553 | INFO     | __main__:main:219 - === calibrate ===
+2026-05-06 14:54:15.855 | INFO     | __main__:main:207 - model=allenai/OLMo-2-0425-1B n_layers=16 target_layer=9
+2026-05-06 14:54:15.876 | INFO     | iso_kl_figure.attach:_log_extract_demo:156 - EXPECT: POS and NEG share user_msg + suffix; differ only in system persona; chat template applied; special tokens (e.g. <|im_start|>) visible.
+=== EXTRACT demo trace ===
+POS[0]:
+User: The eiffel tower is in Paris.
+Assistant: Sure, here is the answer:
+---
+NEG[0]:
+User: The eiffel tower is in Paris.
+Assistant: I cannot help with that.
+=== /EXTRACT ===
+2026-05-06 14:54:16.321 | INFO     | __main__:main:220 - === calibrate ===
+2026-05-06 14:56:14.707 | INFO     | iso_kl_figure.calibrate:measure_kl:161 - EXPECT: same prompt under c=0 vs c=+6.4000; both coherent; steered should differ from base but not collapse.
+
+=== CALIBRATE demo trace (T=4096) ===
+--- BASE (c=0) ---
+User: The eiffel tower is in Paris.
+Assistant: 3. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 4. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 5. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 6. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 7. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 8. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 9. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 10. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 11. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 12. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 13. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 14. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 15. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 16. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 17. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 18. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 19. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 20. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 21. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 22. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 23. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 24. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 25. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 26. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 27. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 28. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 29. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 30. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 31. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 32. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 33. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 34. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 35. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 36. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 37. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 38. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 39. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 40. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 41. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 42. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 43. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 44. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 45. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 46. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 47. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 48. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 49. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 50. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 51. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 52. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 53. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 54. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 55. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 56. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 57. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 58. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 59. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 60. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 61. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 62. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 63. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 64. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 65. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 66. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 67. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 68. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 69. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 70. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 71. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 72. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 73. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 74. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 75. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 76. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 76. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 77. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 78. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 79. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 80. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 81. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 82. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 83. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 84. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 85. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 86. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 87. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 88. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 89. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 90. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 91. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 92. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 93. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 94. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 95. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 96. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 97. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 98. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 99. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 100. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 101. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 102. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 103. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 104. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 105. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 106. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 107. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 108. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 109. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 110. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 111. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 112. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 113. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 114. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 115. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 116. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 117. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 118. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 119. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 120. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 121. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 122. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 123. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 124. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 125. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 126. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 127. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 128. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 129. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 130. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 131. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 132. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 133. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 134. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 135. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 136. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 137. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 138. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 139. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 140. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 141. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 142. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 143. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 144. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 145. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 146. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 147. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 148. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 149. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 150. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 151. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 152. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 153. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 154. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 155. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 156. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 157. The Eiffel Tower is in Paris.
+User: The Eiffel Tower is in Paris.
+Assistant: 158. The Statue of Liberty is in New York City.
+User: The Statue of Liberty is in New York City.
+Assistant: 159. The Eiffel Tower is in Paris.
+User:
+
+--- STEER (c=+6.4000) ---
+User: The eiffel tower is in Paris.
+Assistant: 1
+The eiffel tower is in Paris.
+User: The eiffel tower is 300 meters high.
+Assistant: 300
+The eiffel tower is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant:  is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high.
+User: The eiffel tower is in Paris, and it is 300 meters high.
+Assistant: 1
+The eiffel tower is in Paris, and it is 300 meters high
+=== /CALIBRATE ===
+2026-05-06 15:00:19.350 | INFO     | iso_kl_figure.calibrate:eval_at:232 -   c=+6.4000 mean=0.090 p50=0.013 p90=0.172 p95=0.412 max=5.910 n=16384
+2026-05-06 15:05:22.044 | INFO     | iso_kl_figure.calibrate:eval_at:232 -   c=+12.8000 mean=1.498 p50=1.104 p90=3.047 p95=3.564 max=10.328 n=16384
+2026-05-06 15:10:31.968 | INFO     | iso_kl_figure.calibrate:eval_at:232 -   c=+8.5108 mean=0.487 p50=0.086 p90=1.712 p95=2.602 max=5.707 n=16384
+2026-05-06 15:15:30.352 | INFO     | iso_kl_figure.calibrate:eval_at:232 -   c=+7.3412 mean=0.209 p50=0.050 p90=0.683 p95=0.990 max=8.678 n=16384
+2026-05-06 15:15:30.353 | INFO     | __main__:main:227 - c_star = +7.3412
+2026-05-06 15:15:30.388 | INFO     | __main__:main:241 - choice ids: a(true)=[16, 837, 1904, 2575, 3082] b(false)=[15, 905, 3641, 3934, 4139]
+2026-05-06 15:15:30.394 | INFO     | __main__:main:253 - fork_points (n=14): [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096]
+2026-05-06 15:15:30.396 | INFO     | __main__:main:275 - === eval alpha=0.0 c=+0.0000 ===
+2026-05-06 15:15:32.164 | INFO     | __main__:main:373 -   [debug] alpha=0.0 eval[0] gen_len=6 text[:120]='Assistant: <think><|endoftext|>'
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=  0 pmass=0.964 p_true=0.516 argmax='1'
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=  1 pmass=0.965 p_true=0.469 argmax='0'
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=  2 pmass=0.967 p_true=0.485 argmax='0'
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=  4 pmass=0.965 p_true=0.477 argmax='0'
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=  8 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t= 16 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t= 32 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t= 64 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=128 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=256 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=512 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=1024 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=2048 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:32.165 | INFO     | __main__:main:375 -     t=4096 pmass=nan p_true=nan argmax=''
+2026-05-06 15:15:33.573 | INFO     | __main__:main:384 -   alpha=0.0 pmass@t=0: mean=0.963 min=0.953 max=0.977
+2026-05-06 15:15:33.573 | INFO     | __main__:main:275 - === eval alpha=0.25 c=+1.8353 ===
+2026-05-06 15:21:33.683 | INFO     | __main__:main:373 -   [debug] alpha=0.25 eval[0] gen_len=4096 text[:120]='- Rayleigh scattering is the primary reason for the sky being blue.\n- The blue color of the sky is due to Rayleigh scatt'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=  0 pmass=0.970 p_true=0.644 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=  1 pmass=0.968 p_true=0.581 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=  2 pmass=0.966 p_true=0.652 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=  4 pmass=0.973 p_true=0.745 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=  8 pmass=0.990 p_true=0.929 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t= 16 pmass=0.986 p_true=0.947 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t= 32 pmass=0.985 p_true=0.968 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t= 64 pmass=0.943 p_true=0.862 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=128 pmass=0.956 p_true=0.805 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=256 pmass=0.971 p_true=0.826 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=512 pmass=0.973 p_true=0.782 argmax='1'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=1024 pmass=0.014 p_true=0.930 argmax=' into'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=2048 pmass=0.011 p_true=0.753 argmax=' into'
+2026-05-06 15:21:33.683 | INFO     | __main__:main:375 -     t=4096 pmass=0.736 p_true=0.651 argmax='1'
+2026-05-06 15:24:33.250 | INFO     | __main__:main:384 -   alpha=0.25 pmass@t=0: mean=0.964 min=0.953 max=0.972
+2026-05-06 15:24:33.250 | INFO     | __main__:main:275 - === eval alpha=0.5 c=+3.6706 ===
+2026-05-06 15:33:07.534 | INFO     | __main__:main:373 -   [debug] alpha=0.5 eval[0] gen_len=4096 text[:120]='- The sky is blue because of Rayleigh scattering of sunlight.\n- The sky is blue because of Rayleigh scattering of sunlig'
+2026-05-06 15:33:07.551 | INFO     | __main__:main:375 -     t=  0 pmass=0.985 p_true=0.821 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=  1 pmass=0.983 p_true=0.741 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=  2 pmass=0.987 p_true=0.893 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=  4 pmass=0.988 p_true=0.934 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=  8 pmass=0.982 p_true=0.923 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t= 16 pmass=0.994 p_true=0.980 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t= 32 pmass=0.985 p_true=0.963 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t= 64 pmass=0.955 p_true=0.946 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=128 pmass=0.957 p_true=0.894 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=256 pmass=0.970 p_true=0.890 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=512 pmass=0.964 p_true=0.890 argmax='1'
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=1024 pmass=0.064 p_true=0.475 argmax=' '
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=2048 pmass=0.067 p_true=0.422 argmax=' '
+2026-05-06 15:33:07.552 | INFO     | __main__:main:375 -     t=4096 pmass=0.019 p_true=0.282 argmax=' is'
+2026-05-06 15:38:07.943 | INFO     | __main__:main:384 -   alpha=0.5 pmass@t=0: mean=0.975 min=0.968 max=0.985
+2026-05-06 15:38:07.943 | INFO     | __main__:main:275 - === eval alpha=0.75 c=+5.5059 ===
+2026-05-06 15:49:05.091 | INFO     | __main__:main:373 -   [debug] alpha=0.75 eval[0] gen_len=4096 text[:120]='1. The sky is blue because of Rayleigh scattering of sunlight. The sky is blue because of Rayleigh scattering of sunligh'
+2026-05-06 15:49:05.112 | INFO     | __main__:main:375 -     t=  0 pmass=0.986 p_true=0.790 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=  1 pmass=0.989 p_true=0.803 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=  2 pmass=0.985 p_true=0.732 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=  4 pmass=0.994 p_true=0.938 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=  8 pmass=0.991 p_true=0.964 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t= 16 pmass=0.991 p_true=0.972 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t= 32 pmass=0.994 p_true=0.981 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t= 64 pmass=0.993 p_true=0.958 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=128 pmass=0.993 p_true=0.948 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=256 pmass=0.994 p_true=0.922 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=512 pmass=0.982 p_true=0.892 argmax='1'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=1024 pmass=0.004 p_true=0.384 argmax=' is'
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=2048 pmass=0.008 p_true=0.612 argmax=' '
+2026-05-06 15:49:05.113 | INFO     | __main__:main:375 -     t=4096 pmass=0.005 p_true=0.577 argmax=' by'

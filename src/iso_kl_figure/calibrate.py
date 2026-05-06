@@ -31,10 +31,24 @@ DEFAULT_MESSAGES = [
 ]
 
 
+def _eos_token_ids(tok) -> list[int]:
+    ids = [tok.eos_token_id]
+    vocab = tok.get_vocab()
+    for token in ("<end_of_turn>", "<|im_end|>", "<|endoftext|>"):
+        if token in vocab:
+            ids.append(vocab[token])
+    return sorted(set(i for i in ids if i is not None))
+
+
 def _tokenize(prompts, tok):
     if prompts is None:
         prompts = DEFAULT_MESSAGES
     if isinstance(prompts[0], str):
+        if tok.chat_template is None:
+            return [
+                tok(f"User: {p}\nAssistant: ", return_tensors="pt", add_special_tokens=True).input_ids[0]
+                for p in prompts
+            ]
         return [
             tok.apply_chat_template(
                 [{"role": "user", "content": p}],
@@ -56,10 +70,53 @@ def _generate(model, prompt_ids, T, tok, do_sample, device):
     pad_id = tok.pad_token_id if tok.pad_token_id is not None else tok.eos_token_id
     ids = prompt_ids.unsqueeze(0).to(device)
     out = model.generate(
-        ids, max_new_tokens=T, pad_token_id=pad_id, eos_token_id=tok.eos_token_id,
+        ids, max_new_tokens=T, pad_token_id=pad_id, eos_token_id=_eos_token_ids(tok),
         num_return_sequences=1, do_sample=do_sample,
     )
     return out[0, prompt_ids.shape[0]:]
+
+
+@torch.no_grad()
+def _kl_generated_incremental(v: Vector, model: nn.Module, prompt_ids: Tensor, gen: Tensor, device) -> Tensor:
+    """KL for each generated token without materializing `[T, vocab]` logits.
+
+    Full-context scoring at T=4096 OOMs on Gemma because logits/log-probs are
+    `[seq, vocab]`. This computes the same next-token distributions with KV
+    caches and only keeps a small token chunk of logits live at once.
+    """
+    chunk_size = 8
+    prompt = prompt_ids.unsqueeze(0).to(device)
+    gen = gen.to(device)
+
+    base_out = model(prompt, use_cache=True)
+    base_past = base_out.past_key_values
+    with v(model):
+        steer_out = model(prompt, use_cache=True)
+    steer_past = steer_out.past_key_values
+
+    chunks = [
+        _kl_per_pos(
+            torch.log_softmax(steer_out.logits[:, -1:, :].float(), dim=-1)[0],
+            torch.log_softmax(base_out.logits[:, -1:, :].float(), dim=-1)[0],
+        ).cpu()
+    ]
+
+    prev_tokens = gen[:-1]
+    for start in range(0, prev_tokens.shape[0], chunk_size):
+        chunk = prev_tokens[start:start + chunk_size].unsqueeze(0)
+        base_out = model(chunk, past_key_values=base_past, use_cache=True)
+        base_past = base_out.past_key_values
+        with v(model):
+            steer_out = model(chunk, past_key_values=steer_past, use_cache=True)
+        steer_past = steer_out.past_key_values
+        chunks.append(
+            _kl_per_pos(
+                torch.log_softmax(steer_out.logits.float(), dim=-1)[0],
+                torch.log_softmax(base_out.logits.float(), dim=-1)[0],
+            ).cpu()
+        )
+
+    return torch.cat(chunks)
 
 
 def _quantile(xs: list[float], q: float) -> float:
@@ -109,15 +166,7 @@ def measure_kl(
                 f"\n--- STEER (c={v.cfg.coeff:+.4f}) ---\n{decoded_steer}\n"
                 f"=== /CALIBRATE ==="
             )
-        full = full_ids.unsqueeze(0)
-        n_p = pids.shape[0]
-
-        logp_base = torch.log_softmax(model(full).logits.float(), dim=-1)[0]
-        with v(model):
-            logp_steer = torch.log_softmax(model(full).logits.float(), dim=-1)[0]
-
-        slc = slice(n_p - 1, n_p - 1 + n_gen)
-        kls = _kl_per_pos(logp_steer[slc], logp_base[slc]).cpu()
+        kls = _kl_generated_incremental(v, model, pids, gen, device)
         all_kls.append(kls)
         row = [float("nan")] * T
         for i in range(n_gen):
@@ -148,7 +197,7 @@ def calibrate_iso_kl(
     *,
     target_kl: float = 1.0,
     target_stat: str = "kl_p95",
-    bracket: tuple[float, float] = (0.01, 16.0),
+    bracket: tuple[float, float] = (0.01, 4096.0),
     tol: float = 0.05,
     max_iters: int = 12,
     T: int = 50,
@@ -202,8 +251,10 @@ def calibrate_iso_kl(
                 break
             c_lo, v_lo = c, val
         else:
-            logger.warning(f"calibrate {v.cfg.method}: KL below target across bracket")
-            return sign * c, history
+            raise ValueError(
+                f"calibrate {v.cfg.method}: {target_stat}={v_lo:.4g} below target_kl={target_kl:.4g} "
+                f"at max coeff={sign * c_lo:+.4g}; increase bracket high or lower target_kl"
+            )
     else:
         c_hi, v_hi = mid, v_mid
         c = mid
@@ -216,8 +267,10 @@ def calibrate_iso_kl(
                 break
             c_hi, v_hi = c, val
         else:
-            logger.warning(f"calibrate {v.cfg.method}: KL above target across bracket")
-            return sign * c, history
+            raise ValueError(
+                f"calibrate {v.cfg.method}: {target_stat}={v_hi:.4g} above target_kl={target_kl:.4g} "
+                f"at min coeff={sign * c_hi:+.4g}; decrease bracket low or raise target_kl"
+            )
 
     stale_lo = stale_hi = 0
     for _ in tqdm(range(max_iters), desc=f"calib {v.cfg.method}", mininterval=60, leave=False):

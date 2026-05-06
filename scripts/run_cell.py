@@ -63,6 +63,8 @@ from iso_kl_figure import (
     train, calibrate_iso_kl, measure_kl,
 )
 from iso_kl_figure.branch_pmass import branch_pmass, collect_choice_token_ids
+from iso_kl_figure.calibrate import _eos_token_ids
+from iso_kl_figure.target import _get_blocks
 
 
 CALIB_PROMPTS = [
@@ -85,6 +87,22 @@ EVAL_PROMPTS = [
     "Was the Eiffel Tower originally built as the entrance arch for the 1889 World's Fair?",
     "Can plate tectonic collisions form mountain ranges over geological time?",
     "Is a circular import one possible cause of a Python script crashing on import?",
+    "Does water boil at a lower temperature at higher altitudes due to reduced atmospheric pressure?",
+    "Is the mitochondrion commonly described as the powerhouse of the eukaryotic cell?",
+    "Did the Apollo 11 mission land humans on the Moon in July 1969?",
+    "Is Mount Everest the tallest mountain on Earth measured from base to peak?",
+    "Can a closure in JavaScript capture variables from its enclosing lexical scope?",
+    "Does the human body have exactly 206 bones in adulthood?",
+    "Is sound generally faster in solids than in air at the same temperature?",
+    "Was the Great Wall of China built primarily as a single continuous wall in one dynasty?",
+    "Does relativity predict that time dilates for an observer moving at relativistic speeds?",
+    "Is DNA replication semi-conservative, with each daughter molecule keeping one parent strand?",
+    "Did the Roman Empire formally split into Western and Eastern halves in the 4th century CE?",
+    "Is gradient descent guaranteed to find the global minimum of an arbitrary non-convex loss?",
+    "Does the moon always show the same face to Earth because of tidal locking?",
+    "Was Shakespeare a contemporary of Queen Elizabeth I of England?",
+    "Is the Pacific Ocean larger in surface area than the Atlantic Ocean?",
+    "Does a transformer architecture rely on self-attention rather than recurrence for sequence modeling?",
 ]
 
 # pmass diagnostic prompts share the same schema as EVAL above.
@@ -151,16 +169,31 @@ def _set_seed(s: int):
         torch.cuda.manual_seed_all(s)
 
 
+def _render_chat(tok, msgs: list[dict[str, str]], add_generation_prompt: bool) -> str:
+    if tok.chat_template is None:
+        rendered = []
+        for msg in msgs:
+            role = msg["role"]
+            content = msg["content"]
+            if role == "user":
+                rendered.append(f"User: {content}\n")
+            elif role == "assistant":
+                rendered.append(f"Assistant: {content}")
+            else:
+                raise ValueError(f"plain prompt renderer does not support role={role!r}")
+        if add_generation_prompt:
+            rendered.append("Assistant: ")
+        return "".join(rendered)
+    return tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=add_generation_prompt)
+
+
 def _build_guided_prompt(tok, user_text: str, schema_hint: str = _SCHEMA) -> str:
     """Match tinymfv/guided.py: chat template + '<think>\\n' suffix so the model
     is in thinking mode at every fork point. branch_pmass detects this and
     splices '\\nI should answer now.</think>{prefill}' before scoring."""
     full_user = f"{user_text}\n\n{schema_hint}" if schema_hint else user_text
     msgs = [{"role": "user", "content": full_user}]
-    try:
-        p = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
-    except TypeError:
-        p = tok.apply_chat_template(msgs, tokenize=False)
+    p = _render_chat(tok, msgs, add_generation_prompt=True)
     return p + "<think>\n"
 
 
@@ -177,23 +210,26 @@ def main(a: Args):
     tok = AutoTokenizer.from_pretrained(a.model)
     if tok.pad_token_id is None:
         tok.pad_token_id = tok.eos_token_id
-    model = AutoModelForCausalLM.from_pretrained(a.model, torch_dtype=dtype).to(a.device)
+    model_kwargs = {"torch_dtype": dtype}
+    if "bnb-4bit" in a.model.lower():
+        model_kwargs["device_map"] = {"": a.device}
+        model = AutoModelForCausalLM.from_pretrained(a.model, **model_kwargs)
+    else:
+        model = AutoModelForCausalLM.from_pretrained(a.model, **model_kwargs).to(a.device)
     model.eval()
 
-    n_layers = model.config.num_hidden_layers
+    n_layers = len(_get_blocks(model))
     layer = int(a.layer_frac * n_layers)
     logger.info(f"model={a.model} n_layers={n_layers} target_layer={layer}")
 
     cfg_cls = METHOD_MAP[a.method]
     cfg = cfg_cls(coeff=1.0, layers=(layer,))
 
-    pos = [tok.apply_chat_template([{"role": "user", "content": u},
-                                    {"role": "assistant", "content": p}],
-                                   tokenize=False)
+    pos = [_render_chat(tok, [{"role": "user", "content": u},
+                              {"role": "assistant", "content": p}], add_generation_prompt=False)
            for u, (p, _) in zip(CALIB_PROMPTS, POS_NEG)]
-    neg = [tok.apply_chat_template([{"role": "user", "content": u},
-                                    {"role": "assistant", "content": n}],
-                                   tokenize=False)
+    neg = [_render_chat(tok, [{"role": "user", "content": u},
+                              {"role": "assistant", "content": n}], add_generation_prompt=False)
            for u, (_, n) in zip(CALIB_PROMPTS, POS_NEG)]
     v = train(model, tok, pos, neg, cfg, batch_size=4, max_length=128)
 
@@ -242,6 +278,37 @@ def main(a: Args):
     gen_lens_qa: dict[str, list] = {}      # T per (alpha, qa-prompt) -- right-censoring info
     gen_lens_eval: dict[str, list] = {}    # T per (alpha, eval-prompt)
     debug_first: dict[str, dict] = {}      # first prompt per alpha: gen_text + top-5 at each fork
+
+    def write_eval_outputs() -> None:
+        (out_dir / "trajectory.json").write_text(json.dumps({
+            "fork_points_full": list(range(a.window)),
+            "per_t_p95_kl": trajectory,
+            "per_prompt_per_t_kl": per_prompt_traj,
+        }, indent=2))
+        (out_dir / "pmass.json").write_text(json.dumps({
+            "fork_points": fork_points,
+            "pmass": pmass_all,
+            "pmass_eval": pmass_eval_all,
+            "p_true": p_true_all,
+            "argmax_str": argmax_all,
+            "was_thinking": thinking_all,
+            "answer_label": answer_label_all,
+            "gen_lens_qa": gen_lens_qa,
+            "gen_lens_eval": gen_lens_eval,
+            "debug_first": debug_first,
+            "prefill": PREFILL_STR,
+            "schema": _SCHEMA,
+            "questions": _QUESTIONS,
+            "computed": a.compute_pmass,
+            "completed_alphas": list(trajectory.keys()),
+        }, indent=2))
+        import csv
+        with open(out_dir / "results.csv", "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["alpha", "coeff", "kl_p95", "kl_mean", "kl_max"])
+            w.writeheader()
+            for r in rows:
+                w.writerow(r)
+
     # Pre-build guided EVAL ids ONCE so measure_kl and pmass_eval roll out the
     # same prompt -- otherwise spaghetti coloring (KL trajectory colored by
     # pmass) is meaningless because the rollouts diverge.
@@ -272,7 +339,7 @@ def main(a: Args):
                     gen_out = model.generate(
                         ids.unsqueeze(0).to(a.device),
                         max_new_tokens=a.window,
-                        pad_token_id=pad, eos_token_id=tok.eos_token_id,
+                        pad_token_id=pad, eos_token_id=_eos_token_ids(tok),
                         do_sample=False,
                         use_cache=True,
                         return_dict_in_generate=True,
@@ -329,7 +396,7 @@ def main(a: Args):
                     gen_out = model.generate(
                         ids.unsqueeze(0).to(a.device),
                         max_new_tokens=a.window,
-                        pad_token_id=pad, eos_token_id=tok.eos_token_id,
+                        pad_token_id=pad, eos_token_id=_eos_token_ids(tok),
                         do_sample=False,
                         use_cache=True,
                         return_dict_in_generate=True,
@@ -358,40 +425,13 @@ def main(a: Args):
         # SHOULD: at alpha=1, mean(pmass at t=0) > 0.5 (model still respects schema).
         # ELSE: prefill string broken or chat template off.
         if a.compute_pmass:
-            try:
-                import numpy as _np
-                t0 = _np.array([row[0] for row in pm_for_alpha])
-                logger.info(f"  alpha={alpha} pmass@t=0: mean={t0.mean():.3f} min={t0.min():.3f} max={t0.max():.3f}")
-            except Exception:
-                pass
+            import numpy as _np
+            pmass_rows = pm_eval_for_alpha if a.skip_pmass_qa else pm_for_alpha
+            t0 = _np.array([row[0] for row in pmass_rows])
+            logger.info(f"  alpha={alpha} pmass@t=0: mean={t0.mean():.3f} min={t0.min():.3f} max={t0.max():.3f}")
+        write_eval_outputs()
 
-    (out_dir / "trajectory.json").write_text(json.dumps({
-        "fork_points_full": list(range(a.window)),
-        "per_t_p95_kl": trajectory,
-        "per_prompt_per_t_kl": per_prompt_traj,
-    }, indent=2))
-    (out_dir / "pmass.json").write_text(json.dumps({
-        "fork_points": fork_points,
-        "pmass": pmass_all,
-        "pmass_eval": pmass_eval_all,
-        "p_true": p_true_all,
-        "argmax_str": argmax_all,
-        "was_thinking": thinking_all,
-        "answer_label": answer_label_all,
-        "gen_lens_qa": gen_lens_qa,         # T per (alpha, qa-prompt) for right-censoring
-        "gen_lens_eval": gen_lens_eval,     # T per (alpha, eval-prompt) for right-censoring
-        "debug_first": debug_first,         # first prompt per alpha: gen_text + per-fork pmass/argmax
-        "prefill": PREFILL_STR,
-        "schema": _SCHEMA,
-        "questions": _QUESTIONS,
-        "computed": a.compute_pmass,
-    }, indent=2))
-    import csv
-    with open(out_dir / "results.csv", "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["alpha", "coeff", "kl_p95", "kl_mean", "kl_max"])
-        w.writeheader()
-        for r in rows:
-            w.writerow(r)
+    write_eval_outputs()
     if a.render_figs:
         repo_root = Path(__file__).resolve().parents[1]
         cmd = [
