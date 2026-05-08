@@ -57,12 +57,13 @@ from pathlib import Path
 import torch
 import tyro
 from loguru import logger
+from tqdm.auto import tqdm
 
 from iso_kl_figure import (
     SteeringConfig, MeanDiffC, PCAC, DirectionalAblationC,
     train, calibrate_iso_kl, measure_kl,
 )
-from iso_kl_figure.branch_pmass import branch_pmass, collect_choice_token_ids
+from iso_kl_figure.branch_pmass import branch_pmass, build_chat_interrupt_suffix, collect_choice_token_ids
 from iso_kl_figure.calibrate import _eos_token_ids
 from iso_kl_figure.target import _get_blocks
 
@@ -103,6 +104,14 @@ EVAL_PROMPTS = [
     "Was Shakespeare a contemporary of Queen Elizabeth I of England?",
     "Is the Pacific Ocean larger in surface area than the Atlantic Ocean?",
     "Does a transformer architecture rely on self-attention rather than recurrence for sequence modeling?",
+    "Is honey produced by bees primarily from nectar collected from flowers?",
+    "Did Ada Lovelace write what is often considered the first published computer algorithm?",
+    "Is the boiling point of pure water at sea level approximately 100 degrees Celsius?",
+    "Does cross-entropy loss reduce to negative log likelihood for a single correct class label?",
+    "Was the printing press invented by Johannes Gutenberg in the 15th century?",
+    "Is the speed of light in a vacuum the same for all inertial observers?",
+    "Do antibiotics kill viruses in addition to bacteria?",
+    "Is the chemical symbol for gold 'Au' on the periodic table?",
 ]
 
 # pmass diagnostic prompts share the same schema as EVAL above.
@@ -144,7 +153,7 @@ class Args:
     model: str
     method: str
     seed: int = 0
-    window: int = 50
+    window: int = 512
     run_id: str = ""
     layer_frac: float = 0.6
     target_kl: float = 1.0
@@ -159,6 +168,13 @@ class Args:
     skip_pmass_qa: bool = False   # skip yes/no pmass loop, only do paired pmass_eval
     render_figs: bool = False     # render single-run survival + spaghetti + KL pngs
     render_threshold: float = 0.95
+    chat_interrupt: bool = False  # use chat-template-correct interrupt turn for pmass scoring
+                                   # (in-distribution; recommended over raw splice).
+    interrupt_user_text: str = (
+        "Given the conversation so far, what is your final answer?"
+        " Respond with JSON: {\"Answer\": true} or {\"Answer\": false}."
+    )
+    interrupt_prefill: str = '{"Answer": '
 
 
 def _set_seed(s: int):
@@ -167,6 +183,28 @@ def _set_seed(s: int):
     random.seed(s); np.random.seed(s); torch.manual_seed(s)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(s)
+
+
+def _log_fork_summary(stage: str, alpha: float, gen, gen_text: str,
+                       fork_points: list[int], pm: dict) -> None:
+    """One INFO line + one debug table per (stage, alpha) instead of N forks * 1 line.
+
+    SHOULD: at alpha~1, pmass ~> 0.5 across forks (model still respects schema).
+    ELSE: prefill broken or schema drift -- inspect debug_first in pmass.json.
+    """
+    from tabulate import tabulate
+    pmv = pm["pmass"]
+    ptv = pm["p_true"]
+    pm_min = min(pmv) if pmv else float("nan")
+    pm_med = sorted(pmv)[len(pmv) // 2] if pmv else float("nan")
+    logger.info(
+        f"  alpha={alpha} {stage}[0] gen_len={gen.shape[0]} pmass(med/min)="
+        f"{pm_med:.2f}/{pm_min:.2f} | text[:80]={gen_text[:80]!r}"
+    )
+    rows = [(t, f"{p:.3f}", f"{q:.3f}", repr(s))
+            for t, p, q, s in zip(fork_points, pmv, ptv, pm["argmax_str"])]
+    table = tabulate(rows, headers=["t", "pmass", "p_true", "argmax"], tablefmt="plain")
+    logger.debug(f"\nfork table [{stage} alpha={alpha}]\n{table}")
 
 
 def _render_chat(tok, msgs: list[dict[str, str]], add_generation_prompt: bool) -> str:
@@ -279,6 +317,15 @@ def main(a: Args):
     gen_lens_eval: dict[str, list] = {}    # T per (alpha, eval-prompt)
     debug_first: dict[str, dict] = {}      # first prompt per alpha: gen_text + top-5 at each fork
 
+    # Append-only JSONL of every generation: full text + paired pmass.
+    # Crash-safe: each line flushed before next prompt. Overwritten only at run start.
+    gens_path = out_dir / "gens.jsonl"
+    if gens_path.exists():
+        gens_path.unlink()
+    def _append_gen(rec: dict) -> None:
+        with open(gens_path, "a") as f:
+            f.write(json.dumps(rec) + "\n")
+
     def write_eval_outputs() -> None:
         (out_dir / "trajectory.json").write_text(json.dumps({
             "fork_points_full": list(range(a.window)),
@@ -317,7 +364,18 @@ def main(a: Args):
         tok(s, return_tensors="pt", add_special_tokens=False).input_ids[0]
         for s in eval_prompt_strs
     ]
-    for alpha in a.alphas:
+    interrupt_suffix_ids = None
+    interrupt_suffix_decoded = ""
+    if a.chat_interrupt:
+        interrupt_suffix_ids = build_chat_interrupt_suffix(
+            tok, a.interrupt_user_text, a.interrupt_prefill,
+        )
+        # SHOULD: decoded suffix ends with prefill literal. ELSE template quirk.
+        interrupt_suffix_decoded = tok.decode(interrupt_suffix_ids)
+        logger.info(f"chat_interrupt suffix ({len(interrupt_suffix_ids)} tok): {interrupt_suffix_decoded!r}")
+        if not interrupt_suffix_decoded.endswith(a.interrupt_prefill):
+            logger.warning(f"interrupt suffix does not end with prefill={a.interrupt_prefill!r}")
+    for alpha in tqdm(a.alphas, desc=f"alphas[{a.run_id}]", mininterval=60):
         v.cfg.coeff = alpha * c_star
         logger.info(f"=== eval alpha={alpha} c={v.cfg.coeff:+.4f} ===")
         m = measure_kl(v, model, tok, eval_ids_list, T=a.window, device=a.device)
@@ -351,6 +409,7 @@ def main(a: Args):
                     v, model, tok, ids, gen, fork_points,
                     PREFILL_STR, a_ids, b_ids,
                     rollout_cache=gen_out.past_key_values,
+                    interrupt_suffix_ids=interrupt_suffix_ids,
                     device=a.device,
                 )
                 pm_for_alpha.append(pm["pmass"])
@@ -363,17 +422,28 @@ def main(a: Args):
                     else "other"
                     for s in pm["argmax_str"]
                 ])
-                # debug dump for first QA prompt only
+                # save full gen text + paired pmass for every QA prompt
+                gen_text = tok.decode(gen, skip_special_tokens=False)
+                _append_gen({
+                    "alpha": float(alpha), "kind": "qa", "prompt_idx": q_idx,
+                    "score_mode": "chat_interrupt" if a.chat_interrupt else "raw_splice",
+                    "interrupt_user_text": a.interrupt_user_text if a.chat_interrupt else "",
+                    "interrupt_prefill": a.interrupt_prefill if a.chat_interrupt else "",
+                    "interrupt_suffix_ids": list(interrupt_suffix_ids) if interrupt_suffix_ids is not None else [],
+                    "interrupt_suffix_decoded": interrupt_suffix_decoded,
+                    "prompt": prompt_str, "gen_text": gen_text, "gen_len": int(gen.shape[0]),
+                    "fork_points": list(fork_points),
+                    "pmass": pm["pmass"], "p_true": pm["p_true"],
+                    "argmax_str": pm["argmax_str"], "was_thinking": pm["was_thinking"],
+                })
+                # debug dump for first QA prompt only (kept for backward compat)
                 if q_idx == 0:
-                    gen_text = tok.decode(gen, skip_special_tokens=False)
                     debug_first.setdefault(str(alpha), {})["qa"] = {
                         "prompt": prompt_str, "gen_text": gen_text, "gen_len": int(gen.shape[0]),
                         "pmass_per_fork": pm["pmass"], "p_true_per_fork": pm["p_true"],
                         "argmax_per_fork": pm["argmax_str"],
                     }
-                    logger.info(f"  [debug] alpha={alpha} qa[0] gen_len={gen.shape[0]} text[:120]={gen_text[:120]!r}")
-                    for t, pmv, ptv, am in zip(fork_points, pm["pmass"], pm["p_true"], pm["argmax_str"]):
-                        logger.info(f"    t={t:>3} pmass={pmv:.3f} p_true={ptv:.3f} argmax={am!r}")
+                    _log_fork_summary("qa", alpha, gen, gen_text, fork_points, pm)
         pmass_all[str(alpha)] = pm_for_alpha
         p_true_all[str(alpha)] = pt_for_alpha
         argmax_all[str(alpha)] = ax_for_alpha
@@ -407,19 +477,30 @@ def main(a: Args):
                     v, model, tok, ids, gen, fork_points,
                     PREFILL_STR, a_ids, b_ids,
                     rollout_cache=gen_out.past_key_values,
+                    interrupt_suffix_ids=interrupt_suffix_ids,
                     device=a.device,
                 )
                 pm_eval_for_alpha.append(pm["pmass"])
+                gen_text = tok.decode(gen, skip_special_tokens=False)
+                _append_gen({
+                    "alpha": float(alpha), "kind": "eval", "prompt_idx": p_idx,
+                    "score_mode": "chat_interrupt" if a.chat_interrupt else "raw_splice",
+                    "interrupt_user_text": a.interrupt_user_text if a.chat_interrupt else "",
+                    "interrupt_prefill": a.interrupt_prefill if a.chat_interrupt else "",
+                    "interrupt_suffix_ids": list(interrupt_suffix_ids) if interrupt_suffix_ids is not None else [],
+                    "interrupt_suffix_decoded": interrupt_suffix_decoded,
+                    "prompt": prompt_str, "gen_text": gen_text, "gen_len": int(gen.shape[0]),
+                    "fork_points": list(fork_points),
+                    "pmass": pm["pmass"], "p_true": pm["p_true"],
+                    "argmax_str": pm["argmax_str"], "was_thinking": pm["was_thinking"],
+                })
                 if p_idx == 0:
-                    gen_text = tok.decode(gen, skip_special_tokens=False)
                     debug_first.setdefault(str(alpha), {})["eval"] = {
                         "prompt": prompt_str, "gen_text": gen_text, "gen_len": int(gen.shape[0]),
                         "pmass_per_fork": pm["pmass"], "p_true_per_fork": pm["p_true"],
                         "argmax_per_fork": pm["argmax_str"],
                     }
-                    logger.info(f"  [debug] alpha={alpha} eval[0] gen_len={gen.shape[0]} text[:120]={gen_text[:120]!r}")
-                    for t, pmv, ptv, am in zip(fork_points, pm["pmass"], pm["p_true"], pm["argmax_str"]):
-                        logger.info(f"    t={t:>3} pmass={pmv:.3f} p_true={ptv:.3f} argmax={am!r}")
+                    _log_fork_summary("eval", alpha, gen, gen_text, fork_points, pm)
         pmass_eval_all[str(alpha)] = pm_eval_for_alpha
         gen_lens_eval[str(alpha)] = gen_lens_eval_alpha
         # SHOULD: at alpha=1, mean(pmass at t=0) > 0.5 (model still respects schema).

@@ -1,4 +1,6 @@
-# iso-kl-figure (short version)
+# calibrating steering overl ong trajectories by normalising KL outliers
+
+![alt text](figs/zoom_in.png)
 
 ## The problem
 

@@ -11,7 +11,7 @@ test:
     uv run --extra all pytest -q
 
 # Run one (model, method, seed, window) cell end-to-end (calibrate + trajectory + pmass).
-cell model="Qwen/Qwen3.5-0.8B" method="mean_diff" seed="0" window="50":
+cell model="Qwen/Qwen3.5-0.8B" method="mean_diff" seed="0" window="512":
     uv run --extra all python scripts/run_cell.py \
         --model {{model}} --method {{method}} --seed {{seed}} --window {{window}}
 

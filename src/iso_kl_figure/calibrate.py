@@ -158,12 +158,14 @@ def measure_kl(
             base_full = torch.cat([pids.to(device), base_gen])
             decoded_base = tok.decode(base_full, skip_special_tokens=False)
             decoded_steer = tok.decode(full_ids, skip_special_tokens=False)
+            # SHOULD: BASE and STEER both coherent; STEER differs from BASE but does not collapse.
+            # Truncate to keep iso-KL bracket logs scannable; full text in trajectory.json/debug_first.
+            head = 400
             logger.info(
-                f"EXPECT: same prompt under c=0 vs c={v.cfg.coeff:+.4f}; both coherent; "
-                "steered should differ from base but not collapse.\n"
-                f"\n=== CALIBRATE demo trace (T={T}) ===\n"
-                f"--- BASE (c=0) ---\n{decoded_base}\n"
-                f"\n--- STEER (c={v.cfg.coeff:+.4f}) ---\n{decoded_steer}\n"
+                f"SHOULD: c=0 vs c={v.cfg.coeff:+.4f} both coherent, steer differs but does not collapse.\n"
+                f"=== CALIBRATE demo (T={T}, first {head} chars each) ===\n"
+                f"-- BASE  : {decoded_base[:head]!r}\n"
+                f"-- STEER : {decoded_steer[:head]!r}\n"
                 f"=== /CALIBRATE ==="
             )
         kls = _kl_generated_incremental(v, model, pids, gen, device)

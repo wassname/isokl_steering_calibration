@@ -65,14 +65,19 @@ except Exception:
 class Args:
     runs_root: str = "outputs"
     out: str = "figs"
-    window: int = 50           # only this window enters the figure (need long-enough traj for rolling-16)
-    roll: int = 16             # smoothing window for KL trajectory
+    window: int = 512          # only this window enters the figure
+    roll: int = 65             # smoothing window for KL trajectory
     alphas: tuple[str, ...] = ("0.25", "0.5", "0.75", "1.0", "1.5", "2.0", "4.0")
     kl_ymax: float = 6.0
     model_contains: str = ""
     kl_only: bool = False
     spaghetti: bool = False    # plot individual trajectories instead of p10..p90 band
     color_by_pmass: bool = False   # color KL spaghetti lines by paired pmass (requires pmass_eval)
+    line_alpha: float | None = None  # per-line alpha override; None = auto clip(2.5/n,.08,.35)
+    line_lw: float = 0.18      # per-trajectory linewidth; full opacity needs very thin lines
+    median_lw: float = 0.75    # median linewidth
+    quantile_lines: bool = False  # clean summary: p10/p50/p90 lines, no fill/spaghetti
+    mark_t: int = -1           # optional vertical token marker; -1 disables
 
 
 def _rolling_mean(x: np.ndarray, w: int) -> np.ndarray:
@@ -138,20 +143,20 @@ def _draw_kl_panel(ax, K: np.ndarray, a: Args, P: np.ndarray | None = None) -> N
                 pts = np.column_stack([xs, traj])
                 segs = np.stack([pts[:-1], pts[1:]], axis=1)
                 lc = LineCollection(segs, cmap=cmap, norm=plt.Normalize(0, 1),
-                                    linewidths=0.7, alpha=0.55)
+                                    linewidths=a.line_lw, alpha=float(a.line_alpha if a.line_alpha is not None else np.clip(2.5/max(K.shape[0],1), 0.08, 0.35)))
                 lc.set_array(pmass_row[:-1])
                 ax.add_collection(lc)
             ax.set_xlim(xs[0], xs[-1])
             med = np.nanmedian(Kp, axis=0)
-            ax.plot(xs, med, color="k", lw=1.6)
+            ax.plot(xs, med, color="k", lw=a.median_lw)
         else:
             crossed = (K > 1.0).any(axis=1)
             for traj in Kp[~crossed]:
-                ax.plot(xs, traj, color="0.55", lw=0.6, alpha=0.6)
+                ax.plot(xs, traj, color="0.55", lw=a.line_lw, alpha=0.5)
             for traj in Kp[crossed]:
-                ax.plot(xs, traj, color="C3", lw=0.6, alpha=0.6)
+                ax.plot(xs, traj, color="C3", lw=a.line_lw, alpha=0.5)
             med = np.nanmedian(Kp, axis=0)
-            ax.plot(xs, med, color="k", lw=1.6)
+            ax.plot(xs, med, color="k", lw=a.median_lw)
             frac = float(crossed.mean())
             ax.text(0.97, 0.97, f"{frac:.0%} cross KL=1",
                     transform=ax.transAxes, ha="right", va="top",
@@ -163,21 +168,32 @@ def _draw_kl_panel(ax, K: np.ndarray, a: Args, P: np.ndarray | None = None) -> N
         p50s = _rolling_mean(p50, a.roll)
         p10s = _rolling_mean(p10, a.roll)
         p90s = _rolling_mean(p90, a.roll)
-        ax.fill_between(xs, p10s, p90s, alpha=0.25, color="C0", lw=0)
-        ax.plot(xs, p50s, color="C0", lw=1.6)
+        if a.quantile_lines:
+            # standard quantile fan: outer band light, inner band dark, p50 line
+            p25s = _rolling_mean(np.nanpercentile(K, 25, axis=0), a.roll)
+            p75s = _rolling_mean(np.nanpercentile(K, 75, axis=0), a.roll)
+            ax.fill_between(xs, p10s, p90s, alpha=0.15, color="C0", lw=0, label="p10..p90")
+            ax.fill_between(xs, p25s, p75s, alpha=0.32, color="C0", lw=0, label="p25..p75")
+            ax.plot(xs, p50s, color="C0", lw=1.5, label="p50")
+        else:
+            ax.fill_between(xs, p10s, p90s, alpha=0.25, color="C0", lw=0)
+            ax.plot(xs, p50s, color="C0", lw=1.6)
 
 
 def make_kl_figure(cells: list[dict], a: Args, out_path: Path) -> None:
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1, len(a.alphas), figsize=(4.0 * len(a.alphas), 3.2),
+    fig, axes = plt.subplots(1, len(a.alphas), figsize=(3.7 * len(a.alphas), 3.4),
                              sharex=True, sharey=True, squeeze=False, constrained_layout=True)
     label = a.model_contains or "all models"
-    mode = "individual trajectories (red=ever crossed KL=1)" if a.spaghetti \
-           else f"p50 + p10..p90 band, smoothed rolling-{a.roll}"
+    n_max = max((_pool_kl(cells, alpha, T=a.window).shape[0] for alpha in a.alphas), default=0)
+    mode = f"individual trajectories, roll={a.roll}, color=pmass" if (a.spaghetti and a.color_by_pmass) \
+        else "individual trajectories (red=ever crossed KL=1)" if a.spaghetti \
+        else f"shaded quantiles p10/p25/p50/p75/p90, roll={a.roll}" if a.quantile_lines \
+        else f"p50 + p10..p90 band, smoothed rolling-{a.roll}"
     fig.suptitle(
-        f"KL trajectory on N=8 held-out long-form prompts ({label})\n"
-        f"{mode}. Solid line: KL=1 nat. Dotted v-line: t=20.",
+        f"KL trajectory on N={n_max} held-out long-form prompts ({label})\n"
+        f"{mode}. Solid horizontal: KL=1 nat.",
         fontsize=10,
     )
 
@@ -202,27 +218,32 @@ def make_kl_figure(cells: list[dict], a: Args, out_path: Path) -> None:
         Pe = _pool_pmass_eval(cells, alpha, _first_fork(cells), T=a.window) if a.color_by_pmass else None
         _draw_kl_panel(ax, K, a, P=Pe)
         if y_max >= 1.0:
-            ax.axhline(1.0, color="k", lw=1.0)
+            ax.axhline(1.0, color="k", lw=0.7)
         else:
             ax.text(0.98, 0.92, "KL=1 off-scale", transform=ax.transAxes,
                     ha="right", va="top", fontsize=8, color="0.25")
-        ax.axvline(20, color="k", ls=":", lw=0.8)
+        if a.mark_t >= 0:
+            ax.axvline(a.mark_t, color="k", ls=":", lw=0.6)
         ax.set_title(rf"$\alpha = {alpha}$  (n={K.shape[0]} traj)")
         ax.set_xlim(0, x_max)
         ax.set_ylim(0, y_max)
         ax.set_xlabel("token")
         if j == 0:
-            ax.set_ylabel("KL(steered || base)  [nats]")
+            ax.set_ylabel("KL")
 
     if a.color_by_pmass:
         from matplotlib.cm import ScalarMappable
         from matplotlib.colors import LinearSegmentedColormap, Normalize
         cmap = LinearSegmentedColormap.from_list("alive", ["#c0392b", "#f1c40f", "#27ae60"])
         sm = ScalarMappable(norm=Normalize(0, 1), cmap=cmap); sm.set_array([])
-        cbar = fig.colorbar(sm, ax=axes[0, :].tolist(), location="right", shrink=0.75, pad=0.01, fraction=0.015)
-        cbar.set_label("pmass (0=dead, 1=alive)")
+        cbar = fig.colorbar(sm, ax=axes[0, :].tolist(), location="right", shrink=0.72, pad=0.015, fraction=0.012)
+        cbar.set_label("pmass", labelpad=2)
 
     fig.savefig(out_path, dpi=160, bbox_inches="tight")
+    if a.quantile_lines:
+        q_path = out_path.with_name(out_path.stem + "_quantile_lines" + out_path.suffix)
+        fig.savefig(q_path, dpi=160, bbox_inches="tight")
+        logger.info(f"KL quantile-line figure -> {q_path}")
     logger.info(f"KL-only figure -> {out_path}")
 
 

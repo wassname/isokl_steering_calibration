@@ -16,6 +16,10 @@ class Args:
     threshold: float = 0.95
     out_name: str = "figs_auto"
     model_contains: str = ""
+    line_alpha: float | None = None  # forwarded to spaghetti+aggregate
+    roll: int = 65
+    line_lw: float = 0.5
+    quantile_lines: bool = False
 
 
 def _ensure_single_run_root(run_dir: Path) -> Path:
@@ -72,18 +76,21 @@ def main(a: Args) -> None:
         "--window", str(__import__("json").loads(calib.read_text())["window"]),
         "--threshold", str(a.threshold),
         "--model-contains", model_filter,
-    ], repo_root)
+        "--roll", str(a.roll),
+        "--line-lw", str(a.line_lw),
+    ] + (["--line-alpha", str(a.line_alpha)] if a.line_alpha is not None else []), repo_root)
     _run([
         sys.executable,
         "scripts/aggregate.py",
         "--runs-root", str(single_root),
         "--out", str(out_dir / "aggregate"),
         "--window", str(__import__("json").loads(calib.read_text())["window"]),
-        "--spaghetti",
-        "--color-by-pmass",
         "--kl-only",
         "--model-contains", model_filter,
-    ], repo_root)
+        "--roll", str(a.roll),
+        "--line-lw", str(a.line_lw),
+        ] + (["--spaghetti", "--color-by-pmass"] if not a.quantile_lines else ["--quantile-lines"]) \
+            + (["--line-alpha", str(a.line_alpha)] if a.line_alpha is not None else []), repo_root)
 
     pngs = [
         out_dir / "survival" / "survival_pmass_eval.png",

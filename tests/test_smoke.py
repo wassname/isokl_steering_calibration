@@ -15,7 +15,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from iso_kl_figure import (
     SteeringConfig, MeanDiffC, train, measure_kl, attach, detach,
 )
-from iso_kl_figure.branch_pmass import branch_pmass, collect_choice_token_ids
+from iso_kl_figure.branch_pmass import (
+    branch_pmass,
+    build_chat_interrupt_suffix,
+    collect_choice_token_ids,
+)
 
 
 MODEL = "hf-internal-testing/tiny-random-LlamaForCausalLM"
@@ -61,8 +65,22 @@ def test_pipeline_smoke():
     v.cfg.coeff = 5.0
     p_steer = branch_pmass(v, model, tok, pids, rolled, fork, prefill,
                            a_ids, b_ids, device="cpu")
+    tok.chat_template = (
+        "{% for message in messages %}"
+        "<|{{ message['role'] }}|>\n{{ message['content'] }}\n"
+        "{% endfor %}"
+        "{% if add_generation_prompt %}<|assistant|>\n{% endif %}"
+    )
+    interrupt_ids = build_chat_interrupt_suffix(tok, "Final answer?", '{"Answer": ')
+    assert tok.decode(interrupt_ids).endswith('{"Answer": ')
+    p_interrupt = branch_pmass(
+        v, model, tok, pids, rolled, fork, prefill,
+        a_ids, b_ids, interrupt_suffix_ids=interrupt_ids, device="cpu",
+    )
     for x in p_zero["pmass"] + p_steer["pmass"]:
         assert 0.0 <= x <= 1.0, f"pmass out of [0,1]: {x}"
+    for x in p_interrupt["pmass"]:
+        assert 0.0 <= x <= 1.0, f"chat-interrupt pmass out of [0,1]: {x}"
     diff = max(abs(a - b) for a, b in zip(p_zero["pmass"], p_steer["pmass"]))
     assert diff > 1e-8, "pmass invariant to coeff -- hook is dead"
     # p_true should be in [0,1] or NaN

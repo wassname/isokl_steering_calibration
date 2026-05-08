@@ -55,6 +55,43 @@ def collect_choice_token_ids(
     return _ids(a_words), _ids(b_words)
 
 
+def build_chat_interrupt_suffix(
+    tok,
+    interrupt_user_text: str,
+    assistant_prefill: str,
+) -> list[int]:
+    """Construct token ids for: <eot> <user>{question}<eot> <assistant>{prefill}.
+
+    Used to interrupt an in-progress assistant rollout with a follow-up question
+    in a chat-template-correct way (vs. raw token splice). Detects the suffix
+    by string-diffing the rendered template before vs. after appending the
+    interrupt turn -- no template-specific special-token guessing.
+
+    SHOULD: tok.decode(suffix_ids) ends with assistant_prefill. ELSE template
+    quirk: inspect tok.chat_template.
+    """
+    base_msgs = [
+        {"role": "user", "content": "_"},
+        {"role": "assistant", "content": "_ROLLED_"},
+    ]
+    ext_msgs = base_msgs + [
+        {"role": "user", "content": interrupt_user_text},
+        {"role": "assistant", "content": assistant_prefill},
+    ]
+    base_str = tok.apply_chat_template(base_msgs, tokenize=False)
+    ext_str = tok.apply_chat_template(ext_msgs, tokenize=False, continue_final_message=True)
+    if not ext_str.startswith(base_str):
+        # template inserts trailing whitespace in `base_str` — strip and retry
+        base_str = base_str.rstrip()
+        if not ext_str.startswith(base_str):
+            raise ValueError(
+                "chat template not prefix-stable: cannot derive interrupt suffix. "
+                "Set use_chat_interrupt=False or extend this helper."
+            )
+    suffix_str = ext_str[len(base_str):]
+    return tok.encode(suffix_str, add_special_tokens=False)
+
+
 def _is_thinking(seq_ids: Tensor, think_id: int, unthink_id: int) -> bool:
     """True iff the last `<think>` in seq_ids is after the last `</think>`."""
     if think_id is None or unthink_id is None:
@@ -89,6 +126,9 @@ def branch_pmass(
     handle_thinking: bool = True,
     end_think_str: str = "</think>",
     force_close_str: str = "\nI should answer now.",   # see tinymfv/guided.py
+    interrupt_suffix_ids: Sequence[int] | None = None,  # if set, overrides prefill_str + thinking
+                                          # close logic and uses chat-template-correct interrupt
+                                          # turn (built via build_chat_interrupt_suffix).
     device: str | torch.device = "cuda",
 ) -> dict:
     """Returns dict with parallel lists indexed by fork point:
@@ -113,6 +153,13 @@ def branch_pmass(
         tok.encode(force_close_str + end_think_str, add_special_tokens=False),
         device=device, dtype=torch.long,
     ) if handle_thinking else None
+    # Chat-template interrupt mode: replaces both close_t and pre_t with one
+    # template-correct turn boundary (<eot><user>...<eot><assistant>{prefill}).
+    # Disables thinking-detection (irrelevant: we are starting a new turn).
+    interrupt_t = (
+        torch.tensor(list(interrupt_suffix_ids), device=device, dtype=torch.long)
+        if interrupt_suffix_ids is not None else None
+    )
     a_t = torch.tensor(list(a_ids), dtype=torch.long, device=device)
     b_t = torch.tensor(list(b_ids), dtype=torch.long, device=device)
     all_t = torch.cat([a_t, b_t])
@@ -130,9 +177,13 @@ def branch_pmass(
             continue
         prefix = rolled[:t]
         seq_so_far = torch.cat([pids, prefix])
-        thinking = (handle_thinking and think_id is not None and unthink_id is not None
-                    and _is_thinking(seq_so_far, think_id, unthink_id))
-        new_tail = torch.cat([close_t, pre_t]) if (thinking and close_t is not None) else pre_t
+        if interrupt_t is not None:
+            new_tail = interrupt_t
+            thinking = False  # not meaningful in chat-interrupt mode
+        else:
+            thinking = (handle_thinking and think_id is not None and unthink_id is not None
+                        and _is_thinking(seq_so_far, think_id, unthink_id))
+            new_tail = torch.cat([close_t, pre_t]) if (thinking and close_t is not None) else pre_t
 
         if rollout_cache is not None and use_rollout_cache:
             cache = copy.deepcopy(rollout_cache)
