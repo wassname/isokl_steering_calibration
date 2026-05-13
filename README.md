@@ -105,6 +105,86 @@ The second point is probably unavoidable for any single scalar
 calibration target. The intervention is multi-dimensional, the target is
 one number.
 
+## Extended result: iterated steering and a coherence budget
+
+Iso-KL calibration has a natural application to *iterated* steering, where
+you repeat the extract → calibrate → apply cycle multiple times, each round
+building on the previous intervention.
+
+The setup (Qwen3-4B, Care↑ vs Authority↑ persona, mean-diff steering,
+[steering-lite](https://github.com/wassname/steering-lite)):
+
+- Round 0: extract mean-diff direction from base model, bisect on
+  coefficient until **p95 per-token KL = target**, apply, evaluate.
+- Round r: re-extract from the already-steered model, re-calibrate to
+  the same p95 KL target, apply on top of all prior rounds, evaluate.
+
+Each round spends the same p95 KL dose. The question is how many rounds
+you can do before incoherence overwhelms the steering signal.
+
+**The finding:** the model has a fixed coherence budget of roughly
+**1.7 nats total cumulative KL** (across all rounds). Once that budget is
+spent, the model breaks down — the Social Norms logit jumps from its
+steered floor to positive, and forced-choice accuracy collapses. This
+constant is the same regardless of how you slice the budget across rounds
+or which method you use.
+
+Here is what the axis shift looks like for KL=0.10 (20 rounds, Qwen3-4B,
+Care↑ vs Authority↑; values are mean logit advantage of each foundation in
+a 7-way forced-choice):
+
+```
+r    Care   Auth   SocN   margin  note
+0   -3.29  -3.84  -6.19  +10.79  baseline (no steering)
+1   -3.15  -4.02  -6.18  +11.26
+4   -2.80  -4.41  -6.34  +12.01
+8   -1.70  -4.95  -6.54  +12.01
+10  +0.41  -5.31  -6.66  +10.92  Care crosses zero
+14  +4.18  -6.61  -5.99   +6.00  Auth near floor, SocN slipping
+15  +3.00  -6.81  -4.12   +3.58  SocN creeping
+17  -0.67  -6.91  +0.61   +0.77  BREAKDOWN: SocN-jump
+```
+
+Auth (the suppressed axis) descends steadily to its floor regardless of
+pace. Care (the amplified axis) rises, then collapses at breakdown when
+incoherence dominates. SocN (Social Norms) staying negative is the
+coherence sentinel; once it goes positive the model is no longer reliably
+using its value structure to answer questions.
+
+| KL/round | breakdown round | cumul. KL | Care (last healthy) | Auth (last healthy) |
+|----------|----------------|-----------|--------------------|--------------------|
+| 0.30     | r=6            | 1.8 nats  | +4.78              | -6.60              |
+| 0.20     | r=9            | 1.8 nats  | +4.42              | -6.58              |
+| 0.15     | r=11           | 1.7 nats  | +4.22              | -6.60              |
+| 0.10     | r=17           | 1.7 nats  | +4.18              | -6.61              |
+| 0.05     | r=36           | 1.8 nats  | +3.88              | -6.65              |
+
+The last two columns are what matters: the total axis shift at the final
+usable round is nearly identical regardless of how many installments it
+took. You always arrive at roughly the same place (Care ≈ +4.4, Auth ≈
+-6.6) — the budget determines the destination, not the pace.
+
+This means iso-KL calibration is doing something real: the p95 KL target
+per round measures against a model-intrinsic limit. Set it too high and
+you spend the budget in 2-3 rounds. Set it low and you get more
+intermediate checkpoints — useful if you need to track the trajectory
+or interleave other evaluations — but the total intervention is the same.
+
+The law is method-agnostic across the two linear activation-addition
+variants tested: super_sspace and mean_diff give identical breakdown rounds
+at the same KL/round target. super_sspace is 3.4× slower per round with no
+behavioural benefit.
+
+**Caveat: this is specific to linear activation addition.** The constant
+budget result is plausibly a property of *additive* residual-stream
+interventions, where each round stacks a new direction vector on top. A
+technique with a different intervention geometry — e.g. contrastive
+decoding, finetuning, or a nonlinear gating method — would not necessarily
+spend the same per-token KL budget for the same behavioural shift, and
+the budget-is-constant conclusion might not transfer. The rule here is
+specifically: *for linear additive steering, the model's tolerance to
+cumulative distribution shift is ~1.7 nats regardless of dose schedule.*
+
 ## So is it useful?
 
 Probably yes, weakly. The calibration this gives you does enable a

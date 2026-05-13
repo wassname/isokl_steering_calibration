@@ -35,3 +35,6 @@ where = ["src"]
 
 [tool.ruff.lint]
 ignore = ["F722"]  # jaxtyping shape strings
+
+[tool.uv]
+exclude-newer = "5 days"
