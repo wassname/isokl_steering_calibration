@@ -4,10 +4,10 @@
 
 ## The problem
 
-Activation steering has a knob. You pick a steering direction, multiply
-it by a coefficient, and add the result into one residual stream. Small
-coefficient: nothing happens. Large coefficient: the model breaks.
-Somewhere in between is what you want.
+Activation steering is dose dependent. You pick a steering direction, multiply
+it by a coefficient (which control the dose), and add the result into one residual stream. With a small
+coefficient: nothing happens. With a large coefficient: the model breaks.
+Somewhere in between is what we want.
 
 Most papers either pick one coefficient per method, or sweep coefficients
 without normalising across methods. So when they say "method A is better
