@@ -1,4 +1,4 @@
-# calibrating steering overl ong trajectories by normalising KL outliers
+# calibrating steering over long trajectories by normalising KL outliers
 
 ![alt text](figs/zoom_in.png)
 
