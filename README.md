@@ -18,7 +18,7 @@ I want to compare methods more fairly. The natural way is to spend the
 same "intervention budget" across methods, then ask what the budget bought
 you in behaviour.
 
-**UPDATE 2026-09-09** it seems this is limited, it has a meta parameter which is the target rmse(KL) of 32 tokens. I observed that it differs by method. So I hope to show that this hyperparameter can be meta-calibrated once per method (and likely per model), to allow us to quickly calibrate the dose of a steering intervention, and compare multiple steering methods.
+**UPDATE 2026-09-09** it seems this mostly work, but t has a meta parameter which is the target rmse(KL) of 32 tokens. For example 1 nat of rmse(KL) with CAA steering is not equal to 1 nat of rmse(KL) for [vjp-steering](https://github.com/wassname/vjp-steering) because they intervene in different ways with differen't noise profiles.  I observed that it differs by method. So I hope to show that this hyperparameter can be meta-calibrated once per method (and likely per model), to allow us to quickly calibrate the dose of a steering intervention, and compare multiple steering methods.
 
 ## The attempt: iso-KL calibration
 
