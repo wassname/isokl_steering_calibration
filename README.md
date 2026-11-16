@@ -1,6 +1,7 @@
 # calibrating steering over long trajectories by normalising KL outliers
 
-![alt text](figs/zoom_in.png)
+<!-- Alt text drafted by PI/OpenAI gpt-6.1-sol. -->
+![Four panels show normalized per-token KL divergence over 4,096 generated tokens for OLMo-2 1B at steering doses alpha = 0.5, 0.75, 1.0 and 1.5, with 24 trajectories per panel. Blue traces turn orange when boolean-answer probability mass falls below 0.75. The dashed line marks each trajectory's early-token p95 KL reference. Most traces stay below this reference at lower doses; at alpha = 1.5, more traces approach or exceed it. Threshold failures also occur below the reference.](figs/zoom_in.png)
 
 ## The problem
 
@@ -64,7 +65,8 @@ construction. Anything above 1 means the trajectory is over its own
 early-rollout budget. Blue = alive, orange = dead, black ticks = EOS
 (rollout finished naturally before the window ended).
 
-![](figs/spaghetti_olmo2_1b_w4096_norm.png)
+<!-- Alt text drafted by PI/OpenAI gpt-6.1-sol. -->
+![Eight panels show normalized per-token KL divergence over generated tokens for OLMo-2 1B as steering dose alpha increases from 0 to 4, with 24 trajectories per panel. KL is divided by each trajectory's p95 over its first 20 tokens; the dashed reference is 1. Blue means boolean-answer probability mass is at least 0.75, orange means it has fallen below that threshold, and black ticks mark end-of-sequence. The zero-dose panel is empty. Lower-dose traces mostly stay below the reference, though some fail the threshold. At alpha = 2 and 4, all 24 trajectories fail; at 4, failure occurs near the start.](figs/spaghetti_olmo2_1b_w4096_norm.png)
 
 How to read the panels, in order:
 
